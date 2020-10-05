@@ -1,0 +1,6 @@
+torch==1.6.0+cpu 
+torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+transformers==3.3.0
+pandas==1.1.2
+streamlit==0.67.1
+
