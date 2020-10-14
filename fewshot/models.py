@@ -1,12 +1,16 @@
 import os
 import requests
+import torch
 from transformers import AutoTokenizer, AutoModel
 from gensim.models.keyedvectors import KeyedVectors
 
+MODEL_NAME = "deepset/sentence_bert"
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def load_transformer_model_and_tokenizer(model_name_or_path=MODEL_NAME):
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
     model = AutoModel.from_pretrained(model_name_or_path)
+    model.to(DEVICE)
     return model, tokenizer
 
 def load_word_vector_model(cache_dir=None):

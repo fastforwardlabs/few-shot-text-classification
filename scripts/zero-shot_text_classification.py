@@ -2,6 +2,7 @@
 # Latent Embeddings approach
 
 import pandas as pd
+from datasets import load_dataset
 
 from fewshot.embeddings.transformer_embeddings import get_transformer_embeddings
 import fewshot.embeddings.word_embeddings as w2v
@@ -9,15 +10,22 @@ from fewshot.models import load_transformer_model_and_tokenizer, load_word_vecto
 from fewshot.predictions import compute_predictions, compute_predictions_projection
 
 DATADIR = "/home/cdsw/data/"
+DATASET_NAME = "AGNews"
 
 ## Load Data
-df = pd.read_csv("filtered_amazon_co-ecommerce_sample.csv")
-df.category = pd.Categorical(df.category)
-df['label'] = df.category.cat.codes
+if DATASET_NAME == "amazon":
+    df = pd.read_csv(DATADIR+"filtered_amazon_co-ecommerce_sample.csv")
+    df.category = pd.Categorical(df.category)
+    df['label'] = df.category.cat.codes
+    categories = df.category.unique().tolist()
+    data = df.descriptions.tolist() + categories
 
+else:
+    dataset = load_dataset("ag_news")
+    df = pd.DataFrame(dataset['test'])
+    categories = dataset['test'].features['label'].names
+    data = df.text.tolist() + categories
 
-### Identify column(s) of interest
-data = df.descriptions.tolist() + df.category.unique().tolist()
 
 ### Compute sentence embeddings for the product descriptions and product categories
 model, tokenizer = load_transformer_model_and_tokenizer()
@@ -29,8 +37,8 @@ sbert_embeddings = get_transformer_embeddings(data,
                                               tokenizer, 
                                               output_filename=DATADIR+"sbert_emb_amazon_desc&cat")
 
-sbert_desc_embeddings = sbert_embeddings[:-len(df.category.unique())]
-sbert_label_embeddings = sbert_embeddings[-len(df.category.unique()):]
+sbert_desc_embeddings = sbert_embeddings[:-len(categories)]
+sbert_label_embeddings = sbert_embeddings[-len(categories):]
 
 
 ### Compute predictions based on cosine similarity

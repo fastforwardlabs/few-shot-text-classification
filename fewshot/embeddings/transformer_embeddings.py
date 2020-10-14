@@ -3,13 +3,14 @@ from torch.utils.data import DataLoader, TensorDataset, SequentialSampler
 import torch
 
 MODEL_NAME = 'deepset/sentence_bert'
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def batch_tokenize(text_list, tokenizer, max_length=384):
     """
     How is this different from tokenizer.encode_plus? 
     """
-    feaetures = tokenizer.batch_encode_plus(text_list,
+    features = tokenizer.batch_encode_plus(text_list,
                                         return_tensors='pt',
                                         padding='max_length',
                                         max_length=max_length,
@@ -27,7 +28,7 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
     all_embeddings = []
     for batch in tqdm(dataloader, desc="Computing sentence representations"):
         model.eval()
-        batch = tuple(t.to(device) for t in batch)
+        batch = tuple(t.to(DEVICE) for t in batch)
         
         with torch.no_grad():
             inputs = {
@@ -51,7 +52,7 @@ def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **k
 
     features = batch_tokenize(data, tokenizer, **kwargs)
     dataset = prepare_dataset(features)
-    embeddings = compute_embeddings(datset, model, **kwargs)
+    embeddings = compute_embeddings(dataset, model, **kwargs)
 
     if output_filename:
         torch.save({"features": features, "dataset": dataset, "embeddings":embeddings}, output_filename)
