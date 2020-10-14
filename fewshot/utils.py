@@ -1,12 +1,16 @@
 import os
 import pickle
 import torch
+import torch.nn.functional as F
 
 def to_list(tensor):
     return tensor.detach().cpu().tolist()
 
-def to_tensor(list):
-    return torch.tensor(list, dtype=tensor.float)
+def to_tensor(vector):
+    # Something is wrong with this and I have no idea what
+    tensor = torch.tensor(vector, dtype=torch.float)
+    return tensor
+    #return torch.Tensor(vector, dtype=torch.float)
 
 def save_as_tensor(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
@@ -44,9 +48,11 @@ def compute_projection_matrix(X, Y):
 
   w = (X.T X)^-1 X.T Y
   """
+  X_norm = F.normalize(X, p=2, dim=1)
+  Y_norm = F.normalize(Y, p=2, dim=1)
 
-  Z = torch.inverse(torch.matmul(X.T, X))
-  Z = torch.matmul(Z, X.T)
-  w = torch.matmul(Z, Y)
+  Z = torch.inverse(torch.matmul(X_norm.T, X_norm))
+  Z = torch.matmul(Z, X_norm.T)
+  w = torch.matmul(Z, Y_norm)
 
   return w

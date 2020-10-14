@@ -8,10 +8,8 @@ def simple_accuracy(ground_truth, predictions):
       indexes.append(i)
       score += 1
 
-  print(score)
-  print(score / len(ground_truth) * 100)
-  return indexes
-
+  #print(score / len(ground_truth) * 100)
+  return score / len(ground_truth) * 100
 
 def simple_topk_accuracy(ground_truth, predictions):
   score = 0
@@ -23,6 +21,5 @@ def simple_topk_accuracy(ground_truth, predictions):
       indexes.append(i)
       score += 1
 
-  print(score)
-  print(score / len(ground_truth) * 100)
-  return indexes 
+  #print(score / len(ground_truth) * 100)
+  return score / len(ground_truth) * 100 

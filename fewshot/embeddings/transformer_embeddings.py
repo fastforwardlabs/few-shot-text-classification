@@ -35,13 +35,17 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
                 "input_ids": batch[0],
                 "attention_mask": batch[1],
             }
-        outputs = model(**inputs)[0]
-        embeddings = outputs.mean(dim=1).detach().cpu()
+            outputs = model(**inputs)[0]
+            embeddings = outputs.mean(dim=1).detach().cpu()
 
-        try:
-            all_embeddings = torch.cat((all_embeddings, embeddings), 0)
-        except:
-            all_embeddings = embeddings
+            try:
+                all_embeddings = torch.cat((all_embeddings, embeddings), 0)
+            except:
+                all_embeddings = embeddings
+
+            del outputs
+            del embeddings 
+
     return all_embeddings 
 
 def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **kwargs):
