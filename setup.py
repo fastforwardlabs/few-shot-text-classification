@@ -8,5 +8,5 @@ setup(
         HuggingFace Transformers and Word2Vec. 
     ''',
     author='Melanie Beck',
-    packages=['fewshot']
+    packages=['fewshot', 'fewshot.embeddings'],
 )

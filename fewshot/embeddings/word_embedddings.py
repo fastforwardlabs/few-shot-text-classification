@@ -17,8 +17,7 @@ def get_topk_w2v_vectors(word_emb_model, k, return_word_list=True):
 
     if return_word_list: 
         return vectors, topk_words
-
-  return vectors
+    return vectors
 
 def tokenize_text(text):
     """
