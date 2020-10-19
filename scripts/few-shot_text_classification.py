@@ -28,7 +28,4 @@
 ### Score the results!
 
 
-
 ### Visualize our data and labels
-
-

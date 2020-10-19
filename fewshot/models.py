@@ -17,19 +17,21 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ORIGINAL_W2V = "GoogleNews-vectors-negative300.bin.gz"
 W2V_SMALL = "GoogleNews-vectors-negative300_top500k.kv"
 
+
 def load_transformer_model_and_tokenizer(model_name_or_path=MODEL_NAME):
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
     model = AutoModel.from_pretrained(model_name_or_path)
     model.to(DEVICE)
     return model, tokenizer
 
+
 def load_word_vector_model(small=True, cache_dir=None):
-    #TODO: be able to load GloVe or Word2Vec embedding model
-    #TODO: make a smaller version that only has, say, top 100k words
+    # TODO: be able to load GloVe or Word2Vec embedding model
+    # TODO: make a smaller version that only has, say, top 100k words
     if small:
-      filename = W2V_SMALL
+        filename = W2V_SMALL
     else:
-      filename = ORIGINAL_W2V
+        filename = ORIGINAL_W2V
 
     if cache_dir:
         filename = fewshot_filename(cache_dir, filename)
@@ -39,10 +41,11 @@ def load_word_vector_model(small=True, cache_dir=None):
 
         url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
         r = requests.get(url, allow_redirects=True)
-        open(filename, 'wb').write(r.content)
+        open(filename, "wb").write(r.content)
 
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
+
 
 def save_word2vec_format(fname, vocab, vector_size, binary=True):
     """
@@ -62,7 +65,7 @@ def save_word2vec_format(fname, vocab, vector_size, binary=True):
         else it will be saved in plain text.
     """
     total_vec = len(vocab)
-    with gensim.utils.smart_open(fname, 'wb') as fout:
+    with gensim.utils.smart_open(fname, "wb") as fout:
         print(total_vec, vector_size)
         fout.write(gensim.utils.to_utf8("%s %s\n" % (total_vec, vector_size)))
         # store in sorted order: most frequent words at the top
@@ -71,7 +74,12 @@ def save_word2vec_format(fname, vocab, vector_size, binary=True):
                 row = row.astype(np.float32)
                 fout.write(gensim.utils.to_utf8(word) + b" " + row.tostring())
             else:
-                fout.write(gensim.utils.to_utf8("%s %s\n" % (word, ' '.join(repr(val) for val in row))))
+                fout.write(
+                    gensim.utils.to_utf8(
+                        "%s %s\n" % (word, " ".join(repr(val) for val in row))
+                    )
+                )
+
 
 def create_small_w2v_model():
     orig_model = load_word_vector_model(small=False)
