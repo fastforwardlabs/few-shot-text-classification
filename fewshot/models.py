@@ -9,6 +9,8 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
 
+from scripts.path_helper import fewshot_filename
+
 MODEL_NAME = "deepset/sentence_bert"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -24,13 +26,13 @@ def load_transformer_model_and_tokenizer(model_name_or_path=MODEL_NAME):
 def load_word_vector_model(small=True, cache_dir=None):
     #TODO: be able to load GloVe or Word2Vec embedding model
     #TODO: make a smaller version that only has, say, top 100k words
-    if small: 
+    if small:
       filename = W2V_SMALL
-    else: 
+    else:
       filename = ORIGINAL_W2V
 
     if cache_dir:
-        filename = cache_dir + "/" + filename
+        filename = fewshot_filename(cache_dir, filename)
 
     if not os.path.exists(filename):
         print("Word2Vec vectors not found. Downloading...")
@@ -38,13 +40,13 @@ def load_word_vector_model(small=True, cache_dir=None):
         url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
         r = requests.get(url, allow_redirects=True)
         open(filename, 'wb').write(r.content)
-    
+
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
 
 def save_word2vec_format(fname, vocab, vector_size, binary=True):
     """
-    Store the input-hidden weight matrix in the same format used by 
+    Store the input-hidden weight matrix in the same format used by
     the original C word2vec-tool, for compatibility.
 
     Parameters
@@ -56,7 +58,7 @@ def save_word2vec_format(fname, vocab, vector_size, binary=True):
     vector_size : int
         The number of dimensions of word vectors.
     binary : bool, optional
-        If True, the data wil be saved in binary word2vec format, 
+        If True, the data wil be saved in binary word2vec format,
         else it will be saved in plain text.
     """
     total_vec = len(vocab)
@@ -80,4 +82,3 @@ def create_small_w2v_model():
         w2v_small[word] = orig_model.get_vector(word)
 
     save_word2vec_format(W2V_SMALL, vocab=w2v_small, vector_size=300, binary=True)
-    
