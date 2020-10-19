@@ -83,7 +83,7 @@ def save_word2vec_format(fname, vocab, vector_size, binary=True):
 
 def create_small_w2v_model():
     orig_model = load_word_vector_model(small=False)
-    top500k = w2v_model.index2entity[:500000]
+    top500k = orig_model.index2entity[:500000]
 
     w2v_small = {}
     for word in top500k:

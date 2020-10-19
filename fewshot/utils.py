@@ -31,16 +31,16 @@ def load_tensor(filename, to_gpu=False):
         print(f"{filename} does not exist!")
 
 
-def save_as_vector(vector, filename, overwite=False):
+def save_as_vector(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
         print(f"{filename} already exists! Please use overwrite flag.")
     else:
-        pickle.dump(vector, open(filename), "wb")
+        pickle.dump(vector, open(filename, "wb"))
 
 
 def load_vector(filename):
     if os.path.exists(filename):
-        return pickle.load(open(filename), "rb")
+        return pickle.load(open(filename, "rb"))
     else:
         print(f"{filename} does not exist!")
 
