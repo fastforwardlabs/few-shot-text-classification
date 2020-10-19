@@ -12,7 +12,7 @@ from fewshot.predictions import compute_predictions, compute_predictions_project
 from fewshot.utils import load_tensor, to_tensor, compute_projection_matrix
 from fewshot.metrics import simple_accuracy, simple_topk_accuracy
 
-from scripts.path_helper import fewshot_filename
+from fewshot.path_helper import fewshot_filename
 
 DATADIR = "data"
 DATASET_NAME = "AGNews"
