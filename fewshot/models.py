@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from scripts.path_helper import fewshot_filename
+from fewshot.path_helper import fewshot_filename
 
 MODEL_NAME = "deepset/sentence_bert"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
