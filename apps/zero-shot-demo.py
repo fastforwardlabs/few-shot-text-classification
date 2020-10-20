@@ -3,16 +3,22 @@ import streamlit as st
 from PIL import Image
 import pandas as pd 
 import numpy as np
+import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 
 from transformers import AutoModel, AutoTokenizer
 
 from fewshot.embeddings import transformer_embeddings as temb
 from fewshot.predictions import compute_predictions, compute_predictions_projection
+from fewshot.utils import load_tensor
 from fewshot.path_helper import fewshot_filename
 
 DATADIR = "data"
 IMAGEDIR = "images"
 MODEL_NAME = "deepset/sentence_bert"
+BORDER_COLORS = ["#00828c", "#ff8300"]
+COLORS = ["#00a1ad"]
 
 # Import these from elsewhere to keep this clean? Cuz this could start
 # to be a looooooot of text if a put a few examples here. 
@@ -66,14 +72,39 @@ data = [text_input] + label_list
 model, tokenizer = load_transformer_model_and_tokenizer()
 embeddings = get_transformer_embeddings(data)
 
+### ------- COMPUTE PREDICTIONS ------- ###
 if projection == "W2V":
     st.write("Projection on!")
+    # TODO: precompute projection matrixes and load one!
+    predictions = compute_predictions_projection(
+        embeddings[0], embeddings[1:], projection_matrix, k=len(data)-1)
+else:
+    ### Compute predictions based on cosine similarity
+    predictions = compute_predictions(embeddings[0], embeddings[1:], k=len(data)-1)
 
-### Compute predictions based on cosine similarity
-predictions = compute_predictions(embeddings[0], embeddings[1:], k=len(data)-1)
-st.write("scores", predictions[0]["scores"])
-st.write("indices", predictions[0]["closest"])
 
-st.write(" Label \t  Score")
-for ind in predictions[0]['closest']:
-    st.write(label_list[ind], predictions[0]['scores'][ind])
+df = pd.DataFrame(data=predictions[0])
+df['labels'] = label_list
+
+
+fig = px.bar(df, x='scores', y='labels',
+            hover_data=['scores', 'labels'],
+            labels={'scores':'Cosine similarity',
+                    'labels':'Label'
+                },
+            )
+
+fig.update_layout(
+    yaxis={
+        'categoryorder':'total ascending',
+        'title':'',
+    },
+    xaxis={'title':'Score'},
+)
+fig.update_traces(
+    marker_color=COLORS[0],
+    marker_line_color=BORDER_COLORS[0],
+    marker_line_width=2,
+    opacity=0.8,
+    )
+st.plotly_chart(fig)
