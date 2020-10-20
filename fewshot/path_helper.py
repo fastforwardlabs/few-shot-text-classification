@@ -1,6 +1,12 @@
 """Gives a platform-independent way to get files."""
-
+import os
 import pathlib
+
+
+def check_path(pathname):
+    newdir = "/".join(pathname.split("/")[:-1])
+    if not os.path.exists(newdir):
+        os.makedirs(newdir)
 
 
 def fewshot_filename(*paths) -> pathlib.Path:

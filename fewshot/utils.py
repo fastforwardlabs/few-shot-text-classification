@@ -43,13 +43,7 @@ def load_vector(filename):
         return pickle.load(open(filename, "rb"))
     else:
         print(f"{filename} does not exist!")
-
-
-def check_path(pathname):
-    newdir = "/".join(pathname.split("/")[:-1])
-    if not os.path.exists(newdir):
-        os.makedirs(newdir)
-
+        
 
 def compute_projection_matrix(X, Y):
     """
