@@ -2,6 +2,8 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, SequentialSampler
 import torch
 
+from fewshot.path_helper import check_path
+
 MODEL_NAME = 'deepset/sentence_bert'
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
