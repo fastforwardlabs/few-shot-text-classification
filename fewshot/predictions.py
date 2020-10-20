@@ -12,10 +12,9 @@ def closest_label(sentence_representation, label_representations):
 def compute_predictions(example_embeddings, label_embeddings, k=3):
     predictions = []
     topk = []
-    print(example_embeddings.size())
-    if len(example_embeddings.size()) <= 2:
-        example_embeddings.reshape((1, len(example_embeddings))
-        #print(example_embeddings.size())
+
+    if len(example_embeddings.size()) == 1:
+        example_embeddings = example_embeddings.reshape((1, len(example_embeddings)))
 
     norm_example_embeddings = F.normalize(example_embeddings, p=2, dim=1)
     norm_label_embeddings = F.normalize(label_embeddings, p=2, dim=1)
