@@ -59,6 +59,7 @@ def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **k
     embeddings = compute_embeddings(dataset, model, **kwargs)
 
     if output_filename:
+        check_path(output_filename)
         torch.save({"features": features, "dataset": dataset, "embeddings":embeddings}, output_filename)
 
     return embeddings

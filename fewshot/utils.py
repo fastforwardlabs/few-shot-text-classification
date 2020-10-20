@@ -45,6 +45,12 @@ def load_vector(filename):
         print(f"{filename} does not exist!")
 
 
+def check_path(pathname):
+    newdir = "/".join(pathname.split("/")[:-1])
+    if not os.path.exists(newdir):
+        os.makedirs(newdir)
+
+
 def compute_projection_matrix(X, Y):
     """
   compute projection matrix of best fit, w, that transforms X to Y according to:
