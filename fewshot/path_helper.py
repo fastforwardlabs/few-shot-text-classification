@@ -24,4 +24,4 @@ def fewshot_filename(*paths) -> pathlib.Path:
     result_path = pathlib.Path(__file__).resolve().parent.parent
     for path in paths:
         result_path /= path
-    return result_path
+    return str(result_path)
