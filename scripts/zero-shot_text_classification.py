@@ -100,7 +100,7 @@ for topw in [1000, 10000, 100000]:
         sbert_desc_embeddings, sbert_label_embeddings, projection_matrix, k=3
     )
     scores.append(
-        f1_score(df.label.tolist(), predictions.best, average="weighted"))
+        f1_score(df.label.tolist(), [x.best for x in predictions], average="weighted"))
     scores_intop3.append(simple_topk_accuracy(df.label.tolist(), predictions))
 
 ### Visualize our modified data and label embeddings
