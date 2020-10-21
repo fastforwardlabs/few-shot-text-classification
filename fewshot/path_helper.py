@@ -3,13 +3,13 @@ import os
 import pathlib
 
 
-def check_path(pathname):
+def check_path(pathname: str) -> bool:
     newdir = "/".join(pathname.split("/")[:-1])
     if not os.path.exists(newdir):
         os.makedirs(newdir)
 
 
-def fewshot_filename(*paths) -> pathlib.Path:
+def fewshot_filename(*paths) -> str:
     """Given a path relative to this project's top-level directory, returns the
     full path in the OS.
 
@@ -24,4 +24,4 @@ def fewshot_filename(*paths) -> pathlib.Path:
     result_path = pathlib.Path(__file__).resolve().parent.parent
     for path in paths:
         result_path /= path
-    return result_path
+    return str(result_path)
