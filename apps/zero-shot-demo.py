@@ -57,8 +57,11 @@ image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward-logo.png"))
 st.sidebar.image(image, use_column_width=True)
 st.sidebar.text("ipsom lorum")
 
+# TODO: add projection options
 projection = st.sidebar.selectbox("Projection", ("None", "W2V"))
 
+
+### ------- MAIN ------- ###
 st.title("Zero-Shot Text Classification")
 
 example = st.selectbox("Choose an example", list(EXAMPLES.keys()))
@@ -69,7 +72,7 @@ label_input = st.text_input("Possible labels (separated by `,`)", ", ".join(EXAM
 label_list = label_input.split(", ")
 data = [text_input] + label_list
 
-model, tokenizer = load_transformer_model_and_tokenizer()
+load_transformer_model_and_tokenizer()
 embeddings = get_transformer_embeddings(data)
 
 ### ------- COMPUTE PREDICTIONS ------- ###
@@ -82,10 +85,13 @@ else:
     ### Compute predictions based on cosine similarity
     predictions = compute_predictions(embeddings[0], embeddings[1:], k=len(data)-1)
 
-
-df = pd.DataFrame(data=predictions[0])
+st.write(predictions[0].scores)
+st.write(predictions[0].closest)
+df = pd.DataFrame(data={"closest":predictions[0].closest, 
+                        "scores": predictions[0].scores})
 df['labels'] = label_list
 
+st.write(df)
 
 fig = px.bar(df, x='scores', y='labels',
             hover_data=['scores', 'labels'],

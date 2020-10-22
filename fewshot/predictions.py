@@ -28,6 +28,7 @@ def closest_label(sentence_representation, label_representations):
 
 def compute_predictions(example_embeddings, label_embeddings, k=3) -> List[
     Prediction]:
+
     if len(example_embeddings.size()) == 1:
         example_embeddings = example_embeddings.reshape(
             (1, len(example_embeddings)))
@@ -40,8 +41,8 @@ def compute_predictions(example_embeddings, label_embeddings, k=3) -> List[
         embedding = embedding.reshape((1, len(embedding)))
         scores, closest = closest_label(embedding, norm_label_embeddings)
         predictions.append(
-            Prediction(scores=to_list(scores[:k]), closest=to_list(closest[:k]),
-                       best=closest[0].item()))
+            Prediction(scores=sorted(to_list(scores[:k]), reverse=True), 
+                       closest=to_list(closest[:k]), best=closest[0].item()))
 
     return predictions
 
@@ -49,6 +50,7 @@ def compute_predictions(example_embeddings, label_embeddings, k=3) -> List[
 def compute_predictions_projection(
         example_embeddings, label_embeddings, projection_matrix, k=3
 ) -> List[Prediction]:
+
     if len(example_embeddings.size()) == 1:
         example_embeddings = example_embeddings.reshape(
             (1, len(example_embeddings)))
@@ -66,7 +68,7 @@ def compute_predictions_projection(
         scores, closest = closest_label(projected_embedding,
                                         projected_label_embeddings)
         predictions.append(
-            Prediction(scores=to_list(scores[:k]), closest=to_list(closest[:k]),
-                       best=closest[0].item()))
+            Prediction(scores=sorted(to_list(scores[:k]), reverse=True), 
+                       closest=to_list(closest[:k]), best=closest[0].item()))
 
     return predictions
