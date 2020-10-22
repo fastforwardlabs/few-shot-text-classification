@@ -14,40 +14,15 @@ from fewshot.models import load_transformer_model_and_tokenizer, \
 from fewshot.path_helper import fewshot_filename
 from fewshot.predictions import compute_predictions, \
     compute_predictions_projection
+
+from fewshot.data.loaders import load_or_cache_sbert_embeddings
 from fewshot.utils import load_tensor, to_tensor, compute_projection_matrix
 
 DATADIR = "data"
 DATASET_NAME = "AGNews"
 
-## Load Data
-if DATASET_NAME == "amazon":
-    df = pd.read_csv(
-        fewshot_filename(DATADIR, "filtered_amazon_co-ecommerce_sample.csv")
-    )
-    df.category = pd.Categorical(df.category)
-    df["label"] = df.category.cat.codes
-    categories = df.category.unique().tolist()
-    data = df.descriptions.tolist() + categories
-
-else:
-    dataset = load_dataset("ag_news")
-    df = pd.DataFrame(dataset["test"])
-    categories = dataset["test"].features["label"].names
-    data = df.text.tolist() + categories
-
-### Compute sentence embeddings for the product descriptions and product categories
-model, tokenizer = load_transformer_model_and_tokenizer()
-
-# this step takes care of tokenizing the data and generating sentence embeddings with a
-# SentenceBERT transformer model
-filename = fewshot_filename(DATADIR, "agnews_embeddings.pt")
-if os.path.exists(filename):
-    cached_data = load_tensor(filename)
-    sbert_embeddings = cached_data["embeddings"]
-else:
-    sbert_embeddings = get_transformer_embeddings(
-        data, model, tokenizer, output_filename=filename
-    )
+## Load SBERT embeddings for dataset
+sbert_embeddings = load_or_cache_sbert_embeddings(DATADIR, DATASET_NAME)
 
 sbert_desc_embeddings = sbert_embeddings[: -len(categories)]
 sbert_label_embeddings = sbert_embeddings[-len(categories):]

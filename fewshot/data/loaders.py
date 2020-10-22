@@ -30,6 +30,7 @@ def prepare_text(df, text_column, category_column):
 
 
 def load_or_cache_sbert_embeddings(datadir, dataset_name):
+    dataset_name = dataset_name.lower()
     filename = fewshot_filename(datadir, f"{dataset_name}_embeddings.pt")
     if os.path.exists(filename):
         cached_data = load_tensor(filename)
@@ -38,7 +39,7 @@ def load_or_cache_sbert_embeddings(datadir, dataset_name):
         if dataset_name == "amazon":
             df = load_amazon_products_dataset(datadir)
             data = prepare_text(df, text_column="description", category_column="category")
-        elif dataset_name == "news":
+        elif dataset_name == "agnews":
             df = load_agnews_dataset()
             data = prepare_text(df, text_column="text", category_column="category")
 

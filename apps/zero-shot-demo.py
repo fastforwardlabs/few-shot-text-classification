@@ -52,6 +52,29 @@ def get_transformer_embeddings(data):
     embeddings = temb.compute_embeddings(dataset, model)
     return embeddings
 
+def bar_chart(df):
+    fig = px.bar(df, x='scores', y='labels',
+                hover_data=['scores', 'labels'],
+                labels={'scores':'Cosine similarity',
+                        'labels':'Label'
+                    },
+                )
+    fig.update_layout(
+        yaxis={
+            'categoryorder':'total ascending',
+            'title':'',
+        },
+        xaxis={'title':'Score'},
+    )
+    fig.update_traces(
+        marker_color=COLORS[0],
+        marker_line_color=BORDER_COLORS[0],
+        marker_line_width=2,
+        opacity=0.8,
+        )
+    st.plotly_chart(fig)
+
+
 ### ------- SIDEBAR ------- ###
 image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward-logo.png"))
 st.sidebar.image(image, use_column_width=True)
@@ -72,7 +95,7 @@ label_input = st.text_input("Possible labels (separated by `,`)", ", ".join(EXAM
 label_list = label_input.split(", ")
 data = [text_input] + label_list
 
-load_transformer_model_and_tokenizer()
+model, tokenizer = load_transformer_model_and_tokenizer()
 embeddings = get_transformer_embeddings(data)
 
 ### ------- COMPUTE PREDICTIONS ------- ###
@@ -83,34 +106,9 @@ if projection == "W2V":
         embeddings[0], embeddings[1:], projection_matrix, k=len(data)-1)
 else:
     ### Compute predictions based on cosine similarity
-    predictions = compute_predictions(embeddings[0], embeddings[1:], k=len(data)-1)
+    predictions = compute_predictions(embeddings[:2], embeddings[1:], k=len(data)-1)
 
-st.write(predictions[0].scores)
-st.write(predictions[0].closest)
-df = pd.DataFrame(data={"closest":predictions[0].closest, 
-                        "scores": predictions[0].scores})
-df['labels'] = label_list
+df = predictions[0].to_df()
+df['labels'] = [label_list[c] for c in df.closest] 
 
-st.write(df)
-
-fig = px.bar(df, x='scores', y='labels',
-            hover_data=['scores', 'labels'],
-            labels={'scores':'Cosine similarity',
-                    'labels':'Label'
-                },
-            )
-
-fig.update_layout(
-    yaxis={
-        'categoryorder':'total ascending',
-        'title':'',
-    },
-    xaxis={'title':'Score'},
-)
-fig.update_traces(
-    marker_color=COLORS[0],
-    marker_line_color=BORDER_COLORS[0],
-    marker_line_width=2,
-    opacity=0.8,
-    )
-st.plotly_chart(fig)
+bar_chart(df)
