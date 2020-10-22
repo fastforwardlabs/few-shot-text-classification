@@ -1,8 +1,8 @@
-from tqdm import tqdm 
+from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, SequentialSampler
 import torch
 
-from fewshot.path_helper import check_path
+from fewshot.path_helper import create_path
 
 MODEL_NAME = 'deepset/sentence_bert'
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -10,7 +10,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def batch_tokenize(text_list, tokenizer, max_length=384):
     """
-    How is this different from tokenizer.encode_plus? 
+    How is this different from tokenizer.encode_plus?
     """
     features = tokenizer.batch_encode_plus(text_list,
                                         return_tensors='pt',
@@ -22,7 +22,7 @@ def batch_tokenize(text_list, tokenizer, max_length=384):
 def prepare_dataset(features):
     dataset = TensorDataset(features["input_ids"],
                             features['attention_mask'],
-                            features['token_type_ids'])  
+                            features['token_type_ids'])
     return dataset
 
 def compute_embeddings(dataset, model, batch_size=16, **kwargs):
@@ -31,7 +31,7 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
     for batch in tqdm(dataloader, desc="Computing sentence representations"):
         model.eval()
         batch = tuple(t.to(DEVICE) for t in batch)
-        
+
         with torch.no_grad():
             inputs = {
                 "input_ids": batch[0],
@@ -46,13 +46,13 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
                 all_embeddings = embeddings
 
             del outputs
-            del embeddings 
+            del embeddings
 
-    return all_embeddings 
+    return all_embeddings
 
 def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **kwargs):
     """
-    data -> list: list of text 
+    data -> list: list of text
     """
     #TODO: logging!
 
@@ -61,7 +61,7 @@ def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **k
     embeddings = compute_embeddings(dataset, model, **kwargs)
 
     if output_filename:
-        check_path(output_filename)
+        create_path(output_filename)
         torch.save({"features": features, "dataset": dataset, "embeddings":embeddings}, output_filename)
 
     return embeddings
