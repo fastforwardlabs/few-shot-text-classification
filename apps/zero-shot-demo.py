@@ -52,13 +52,39 @@ def get_transformer_embeddings(data):
     embeddings = temb.compute_embeddings(dataset, model)
     return embeddings
 
+def bar_chart(df):
+    fig = px.bar(df, x='scores', y='labels',
+                hover_data=['scores', 'labels'],
+                labels={'scores':'Cosine similarity',
+                        'labels':'Label'
+                    },
+                )
+    fig.update_layout(
+        yaxis={
+            'categoryorder':'total ascending',
+            'title':'',
+        },
+        xaxis={'title':'Score'},
+    )
+    fig.update_traces(
+        marker_color=COLORS[0],
+        marker_line_color=BORDER_COLORS[0],
+        marker_line_width=2,
+        opacity=0.8,
+        )
+    st.plotly_chart(fig)
+
+
 ### ------- SIDEBAR ------- ###
 image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward-logo.png"))
 st.sidebar.image(image, use_column_width=True)
 st.sidebar.text("ipsom lorum")
 
+# TODO: add projection options
 projection = st.sidebar.selectbox("Projection", ("None", "W2V"))
 
+
+### ------- MAIN ------- ###
 st.title("Zero-Shot Text Classification")
 
 example = st.selectbox("Choose an example", list(EXAMPLES.keys()))
@@ -80,31 +106,9 @@ if projection == "W2V":
         embeddings[0], embeddings[1:], projection_matrix, k=len(data)-1)
 else:
     ### Compute predictions based on cosine similarity
-    predictions = compute_predictions(embeddings[0], embeddings[1:], k=len(data)-1)
+    predictions = compute_predictions(embeddings[:2], embeddings[1:], k=len(data)-1)
 
+df = predictions[0].to_df()
+df['labels'] = [label_list[c] for c in df.closest] 
 
-df = pd.DataFrame(data=predictions[0])
-df['labels'] = label_list
-
-
-fig = px.bar(df, x='scores', y='labels',
-            hover_data=['scores', 'labels'],
-            labels={'scores':'Cosine similarity',
-                    'labels':'Label'
-                },
-            )
-
-fig.update_layout(
-    yaxis={
-        'categoryorder':'total ascending',
-        'title':'',
-    },
-    xaxis={'title':'Score'},
-)
-fig.update_traces(
-    marker_color=COLORS[0],
-    marker_line_color=BORDER_COLORS[0],
-    marker_line_width=2,
-    opacity=0.8,
-    )
-st.plotly_chart(fig)
+bar_chart(df)
