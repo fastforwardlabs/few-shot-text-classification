@@ -29,7 +29,7 @@ def prepare_text(df, text_column, category_column):
     return text + categories
 
 
-def load_or_cache_sbert_embeddings(datadir, dataset_name):
+def load_or_cache_data(datadir, dataset_name):
     dataset_name = dataset_name.lower()
     filename = fewshot_filename(datadir, f"{dataset_name}_embeddings.pt")
     if os.path.exists(filename):
@@ -47,6 +47,6 @@ def load_or_cache_sbert_embeddings(datadir, dataset_name):
         sbert_embeddings = get_transformer_embeddings(
             data, model, tokenizer, output_filename=filename
         )
-    return sbert_embeddings
+    return df, sbert_embeddings
 
 
