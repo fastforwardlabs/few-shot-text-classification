@@ -7,12 +7,25 @@ from datasets import load_dataset
 from fewshot.embeddings.transformer_embeddings import get_transformer_embeddings
 from fewshot.models import load_transformer_model_and_tokenizer
 from fewshot.path_helper import fewshot_filename
-from fewshot.utils import load_tensor
+from fewshot.utils import torch_load
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 
+@attr.s
+class Dataset(object):
+    # These are the text (news articles, product descriptions, etc.)
+    examples: List[str] = attr.ib()
+    # Labels associated with each example 
+    # TODO: at some point this has to change because in a real application labels may
+    # not exist or there might be fewer labels than examples (need to keep track)
+    labels: List[int] = attr.ib()
+    # Categories that correspond to the number of unique Labels
+    categories: List[str] = attr.ib()
+    # embeddings for each example and each category
+    embeddings = attr.ib()
 
+    
 def prepare_text(df, text_column, category_column):
     text = df[text_column].tolist()
     categories = df[category_column].unique().tolist()
@@ -65,7 +78,7 @@ def load_or_cache_data(datadir: str, dataset_name: str):
     dataset_name = dataset_name.lower()
     filename = fewshot_filename(datadir, f"{dataset_name}_embeddings.pt")
     if os.path.exists(filename):
-        cached_data = load_tensor(filename)
+        cached_data = torch_load(filename)
         return cached_data["embeddings"]
 
     # Load appropriate data

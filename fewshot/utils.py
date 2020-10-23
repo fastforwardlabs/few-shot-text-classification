@@ -15,14 +15,14 @@ def to_tensor(vector):
     # return torch.Tensor(vector, dtype=torch.float)
 
 
-def save_as_tensor(vector, filename, overwrite=False):
+def torch_save(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
         print(f"{filename} already exists! Please use overwrite flag.")
     else:
         torch.save(torch.tensor(vector, dtype=torch.float), filename)
 
 
-def load_tensor(filename, to_gpu=False):
+def torch_load(filename, to_gpu=False):
     if os.path.exists(filename):
         if to_gpu:
             return torch.load(filename)
@@ -31,14 +31,14 @@ def load_tensor(filename, to_gpu=False):
         print(f"{filename} does not exist!")
 
 
-def save_as_vector(vector, filename, overwrite=False):
+def pickle_save(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
         print(f"{filename} already exists! Please use overwrite flag.")
     else:
         pickle.dump(vector, open(filename, "wb"))
 
 
-def load_vector(filename):
+def pickle_load(filename):
     if os.path.exists(filename):
         return pickle.load(open(filename, "rb"))
     else:

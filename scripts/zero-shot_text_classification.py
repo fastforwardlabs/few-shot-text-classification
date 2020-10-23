@@ -16,7 +16,7 @@ from fewshot.predictions import compute_predictions, \
     compute_predictions_projection
 
 from fewshot.data.loaders import load_or_cache_data
-from fewshot.utils import load_tensor, to_tensor, compute_projection_matrix
+from fewshot.utils import torch_load, to_tensor, compute_projection_matrix
 
 DATADIR = "data"
 DATASET_NAME = "AGNews"
@@ -64,7 +64,7 @@ for topw in [1000, 10000, 100000]:
         DATADIR, f"sbert_embeddings_for_top{topw}_w2v_words.pt"
     )
     if os.path.exists(sbert_w2v_filename):
-        cached_data = load_tensor(sbert_w2v_filename)
+        cached_data = torch_load(sbert_w2v_filename)
         sbert_embeddings_w2v_words = cached_data["embeddings"]
     else:
         sbert_embeddings_w2v_words = get_transformer_embeddings(

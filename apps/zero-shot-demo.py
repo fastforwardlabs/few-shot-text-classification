@@ -13,7 +13,7 @@ from transformers import AutoModel, AutoTokenizer
 
 from fewshot.embeddings import transformer_embeddings as temb
 from fewshot.predictions import compute_predictions, compute_predictions_projection
-from fewshot.utils import load_vector
+from fewshot.utils import pickle_load
 from fewshot.path_helper import fewshot_filename
 
 DATADIR = "data"
@@ -29,7 +29,7 @@ def load_projection_matrices():
     PROJECTIONS = {}
     for filename in filenames:
         proj_name = " ".join(re.split('\_|\.', filename)[3:-1])
-        proj_matrix = load_vector(filename)
+        proj_matrix = pickle_load(filename)
         PROJECTIONS[proj_name] = proj_matrix
     return PROJECTIONS
 
