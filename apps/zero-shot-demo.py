@@ -3,6 +3,8 @@ import streamlit as st
 from PIL import Image
 import pandas as pd 
 import numpy as np
+import glob
+import re
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
@@ -11,7 +13,7 @@ from transformers import AutoModel, AutoTokenizer
 
 from fewshot.embeddings import transformer_embeddings as temb
 from fewshot.predictions import compute_predictions, compute_predictions_projection
-from fewshot.utils import load_tensor
+from fewshot.utils import load_vector
 from fewshot.path_helper import fewshot_filename
 
 DATADIR = "data"
@@ -20,19 +22,16 @@ MODEL_NAME = "deepset/sentence_bert"
 BORDER_COLORS = ["#00828c", "#ff8300"]
 COLORS = ["#00a1ad"]
 
-# Import these from elsewhere to keep this clean? Cuz this could start
-# to be a looooooot of text if a put a few examples here. 
-EXAMPLES = {
-    "example1":{
-        "text": 
-            """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""", 
-        "labels": ['label1', 'label2', 'label3']
-        },
-    "example2":{
-        "text": "alaksfd als;kfasd", 
-        "labels": ['label1', 'label2', 'label3']
-        }
-}
+
+@st.cache(allow_output_mutation=True)
+def load_projection_matrices():
+    filenames = glob.glob(fewshot_filename(DATADIR, "projection_matrices/*"))
+    PROJECTIONS = {}
+    for filename in filenames:
+        proj_name = " ".join(re.split('\_|\.', filename)[3:-1])
+        proj_matrix = load_vector(filename)
+        PROJECTIONS[proj_name] = proj_matrix
+    return PROJECTIONS
 
 @st.cache(allow_output_mutation=True)
 def load_transformer_model_and_tokenizer(model_name_or_path=MODEL_NAME):
@@ -75,14 +74,29 @@ def bar_chart(df):
     st.plotly_chart(fig)
 
 
+# Import these from elsewhere to keep this clean? Cuz this could start
+# to be a looooooot of text if a put a few examples here. 
+EXAMPLES = {
+    "example1":{
+        "text": 
+            """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""", 
+        "labels": ['label1', 'label2', 'label3']
+        },
+    "example2":{
+        "text": "alaksfd als;kfasd", 
+        "labels": ['label1', 'label2', 'label3']
+        }
+}
+
+PROJECTIONS = load_projection_matrices()
+
+
 ### ------- SIDEBAR ------- ###
 image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward-logo.png"))
 st.sidebar.image(image, use_column_width=True)
 st.sidebar.text("ipsom lorum")
 
-# TODO: add projection options
-projection = st.sidebar.selectbox("Projection", ("None", "W2V"))
-
+projection_selection = st.sidebar.selectbox("Projection", [None] +list(PROJECTIONS.keys()))
 
 ### ------- MAIN ------- ###
 st.title("Zero-Shot Text Classification")
@@ -99,11 +113,9 @@ model, tokenizer = load_transformer_model_and_tokenizer()
 embeddings = get_transformer_embeddings(data)
 
 ### ------- COMPUTE PREDICTIONS ------- ###
-if projection == "W2V":
-    st.write("Projection on!")
-    # TODO: precompute projection matrixes and load one!
+if projection_selection:
     predictions = compute_predictions_projection(
-        embeddings[0], embeddings[1:], projection_matrix, k=len(data)-1)
+        embeddings[0], embeddings[1:], PROJECTIONS[projection_selection], k=len(data)-1)
 else:
     ### Compute predictions based on cosine similarity
     predictions = compute_predictions(embeddings[:2], embeddings[1:], k=len(data)-1)
