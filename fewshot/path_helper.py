@@ -3,10 +3,11 @@ import os
 import pathlib
 
 
-def check_path(pathname: str) -> bool:
-    newdir = "/".join(pathname.split("/")[:-1])
-    if not os.path.exists(newdir):
-        os.makedirs(newdir)
+def create_path(pathname: str) -> None:
+    """Creates the directory for the given path if it doesn't already exist."""
+    dir = str(pathlib.Path(pathname).parent)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
 
 
 def fewshot_filename(*paths) -> str:
