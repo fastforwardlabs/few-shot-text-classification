@@ -44,7 +44,7 @@ def _load_agnews_dataset() -> List[str]:
     )
 
 
-def load_or_cache_sbert_embeddings(datadir: str, dataset_name: str):
+def load_or_cache_data(datadir: str, dataset_name: str):
     """Loads sbert embeddings.
 
     First checks for a cached computation, otherwise builds the embedding with a

@@ -15,29 +15,34 @@ from fewshot.path_helper import fewshot_filename
 from fewshot.predictions import compute_predictions, \
     compute_predictions_projection
 
-from fewshot.data.loaders import load_or_cache_sbert_embeddings
+from fewshot.data.loaders import load_or_cache_data
 from fewshot.utils import load_tensor, to_tensor, compute_projection_matrix
 
 DATADIR = "data"
 DATASET_NAME = "AGNews"
+TOPK = 3
 
-## Load SBERT embeddings for dataset
-sbert_embeddings = load_or_cache_sbert_embeddings(DATADIR, DATASET_NAME)
+## Load data
+# df of raw data (contains ground truth & labels)
+# sbert embeddings for each example and each label
+df, sbert_embeddings = load_or_cache_data(DATADIR, DATASET_NAME)
 
-sbert_desc_embeddings = sbert_embeddings[: -len(categories)]
-sbert_label_embeddings = sbert_embeddings[-len(categories):]
+# separate the example embeddings from the label embeddings
+num_categories = len(df['category'].unique())
+sbert_emb_examples = sbert_embeddings[:-num_categories]
+sbert_emb_labels = sbert_embeddings[-num_categories:]
 
 ### Compute predictions based on cosine similarity
-predictions = compute_predictions(
-    sbert_desc_embeddings, sbert_label_embeddings, k=3
-)
+predictions = compute_predictions(sbert_emb_examples, sbert_emb_labels, k=TOPK)
 
 ### Because our data is labeled, we can score the results!
 score = simple_accuracy(df.label.tolist(), predictions)
 score_intop3 = simple_topk_accuracy(df.label.tolist(), predictions)
+print(f"Score: {score}")
+print(f"Score considering the top {TOPK} best labels: {score_intop3}")
 
 ### Visualize our data and labels
-
+# TODO: t-SNE or UMAP figure
 
 ## Let's make this model a bit better!
 
