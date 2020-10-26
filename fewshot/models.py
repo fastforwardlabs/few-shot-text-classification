@@ -74,7 +74,7 @@ def save_word2vec_format(fname, vocab, vector_size, binary=True):
         for word, row in tqdm(vocab.items()):
             if binary:
                 row = row.astype(np.float32)
-                fout.write(gensim.utils.to_utf8(word) + b" " + row.tostring())
+                fout.write(gensim.utils.to_utf8(word) + b' ' + row.tostring())
             else:
                 fout.write(
                     gensim.utils.to_utf8(
