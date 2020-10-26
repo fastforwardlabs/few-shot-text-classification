@@ -10,8 +10,6 @@ from fewshot.models import load_transformer_model_and_tokenizer
 from fewshot.path_helper import fewshot_filename
 from fewshot.utils import pickle_load, pickle_save
 
-from pdb import set_trace 
-
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 
@@ -33,13 +31,16 @@ class Dataset(object):
     def _get_embeddings(self):
         # Load the model and the tokenizer
         model, tokenizer = load_transformer_model_and_tokenizer()
-        return get_transformer_embeddings(self.examples + self.categories, model, tokenizer)
+        return get_transformer_embeddings(
+            self.examples + self.categories, model, tokenizer
+        )
 
 
 def _prepare_text(df, text_column):
     text = df[text_column].tolist()
     categories = df["category"].unique().tolist()
     return text + categories
+
 
 def _prepare_category_names(df):
     """
@@ -51,10 +52,14 @@ def _prepare_category_names(df):
     3 --> "Sci/Tech"
 
     Then we must return the category names in order like 
-        ["World", "Sports", "Business", "Sci/Tech"].  NOT alphabetical!
+    > categories = ["World", "Sports", "Business", "Sci/Tech"]  
+
+    They can NOT be alphabetical, which is what you'll get if you simply use 
+    > categories = df.category.unique()
     """
     mapping = set(zip(df.label, df.category))
-    return [c for l,c in sorted(mapping)]
+    return [c for l, c in sorted(mapping)]
+
 
 def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     """Load Amazon products dataset from AMAZON_SAMPLE_PATH."""
@@ -116,7 +121,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     dataset = Dataset(
         examples=df[text_column].tolist(),
         labels=df.label.tolist(),
-        categories=df[category_column].unique().tolist(),
+        categories=_prepare_category_names(),
     )
 
     pickle_save(dataset, filename)
