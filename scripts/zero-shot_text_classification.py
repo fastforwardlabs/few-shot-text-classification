@@ -20,7 +20,7 @@ from fewshot.utils import torch_load, to_tensor, compute_projection_matrix
 
 import pdb
 
-DATASET_NAME = "AGNews"
+DATASET_NAME = "amazon"
 DATADIR = f"data/{DATASET_NAME}"
 W2VDIR = "data/w2v"
 TOPK = 3
@@ -43,6 +43,7 @@ score = simple_accuracy(dataset.labels, predictions)
 score_intop3 = simple_topk_accuracy(dataset.labels, predictions)
 print(f"Score: {score}")
 print(f"Score considering the top {TOPK} best labels: {score_intop3}")
+print()
 
 ### Visualize our data and labels
 # TODO: t-SNE or UMAP figure
@@ -83,10 +84,10 @@ for topw in [1000, 10000, 100000]:
     predictions = compute_predictions_projection(
         sbert_emb_examples, sbert_emb_labels, projection_matrix, k=3
     )
-    score = f1_score(dataset.labels, [x.best for x in predictions], average="weighted")
+    score = simple_accuracy(dataset.labels, predictions)
     score3 = simple_topk_accuracy(dataset.labels, predictions)
     print(f"Score using projection matrix with top {topw} w2v words: {score}")
-    print(f"Score considering the top {TOPK} best labels: {score3}")
+    #print(f"Score considering the top {TOPK} best labels: {score3}")
 
 ### Visualize our modified data and label embeddings
 
