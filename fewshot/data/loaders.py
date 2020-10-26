@@ -1,4 +1,5 @@
 import os
+import attr
 from typing import List
 
 import pandas as pd
@@ -7,16 +8,19 @@ from datasets import load_dataset
 from fewshot.embeddings.transformer_embeddings import get_transformer_embeddings
 from fewshot.models import load_transformer_model_and_tokenizer
 from fewshot.path_helper import fewshot_filename
-from fewshot.utils import torch_load
+from fewshot.utils import pickle_load, pickle_save
+
+from pdb import set_trace 
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
+
 
 @attr.s
 class Dataset(object):
     # These are the text (news articles, product descriptions, etc.)
     examples: List[str] = attr.ib()
-    # Labels associated with each example 
+    # Labels associated with each example
     # TODO: at some point this has to change because in a real application labels may
     # not exist or there might be fewer labels than examples (need to keep track)
     labels: List[int] = attr.ib()
@@ -25,26 +29,30 @@ class Dataset(object):
     # embeddings for each example and each category
     embeddings = attr.ib()
 
-    
-def prepare_text(df, text_column, category_column):
+    @embeddings.default
+    def _get_embeddings(self):
+        # Load the model and the tokenizer
+        model, tokenizer = load_transformer_model_and_tokenizer()
+        return get_transformer_embeddings(self.examples + self.categories, model, tokenizer)
+
+
+def _prepare_text(df, text_column, category_column):
     text = df[text_column].tolist()
     categories = df[category_column].unique().tolist()
     return text + categories
 
 
-def _load_amazon_products_dataset(datadir: str, num_categories: int = 6) -> List[str]:
+def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     """Load Amazon products dataset from AMAZON_SAMPLE_PATH."""
     df = pd.read_csv(fewshot_filename(datadir, AMAZON_SAMPLE_PATH))
     keepers = df["category"].value_counts()[:num_categories]
     df = df[df["category"].isin(keepers.index.tolist())]
     df["category"] = pd.Categorical(df.category)
     df["label"] = df.category.cat.codes
-    return prepare_text(
-        df, text_column="description", category_column="category"
-    )
+    return df
 
 
-def _load_agnews_dataset() -> List[str]:
+def _load_agnews_dataset():
     """Load AG News dataset from dataset library."""
     dataset = load_dataset("ag_news")
     df = pd.DataFrame(dataset["test"])
@@ -52,12 +60,10 @@ def _load_agnews_dataset() -> List[str]:
     df["category"] = df["label"].map(
         {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
     )
-    return prepare_text(
-        df, text_column="text", category_column="category"
-    )
+    return df
 
 
-def load_or_cache_data(datadir: str, dataset_name: str):
+def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     """Loads sbert embeddings.
 
     First checks for a cached computation, otherwise builds the embedding with a
@@ -76,23 +82,25 @@ def load_or_cache_data(datadir: str, dataset_name: str):
     """
     # Check for cached data.
     dataset_name = dataset_name.lower()
-    filename = fewshot_filename(datadir, f"{dataset_name}_embeddings.pt")
+    filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
     if os.path.exists(filename):
-        cached_data = torch_load(filename)
-        return cached_data["embeddings"]
+        return pickle_load(filename)
 
     # Load appropriate data
     if dataset_name == "amazon":
-        data = _load_amazon_products_dataset(datadir)
+        df = _load_amazon_products_dataset(datadir)
+        text_column, category_column = "description", "category"
     elif dataset_name == "agnews":
-        data = _load_agnews_dataset()
+        df = _load_agnews_dataset()
+        text_column, category_column = "text", "category"
     else:
         raise ValueError(f"Unexpected dataset name: {dataset_name}")
 
-    # Load the model and the tokenizer
-    model, tokenizer = load_transformer_model_and_tokenizer()
-
-    # Get embeddings and return.  This has the side-effect of caching.
-    return get_transformer_embeddings(
-        data, model, tokenizer, output_filename=filename
+    dataset = Dataset(
+        examples=df[text_column].tolist(),
+        labels=df.label.tolist(),
+        categories=df[category_column].unique().tolist(),
     )
+
+    pickle_save(dataset, filename)
+    return dataset
