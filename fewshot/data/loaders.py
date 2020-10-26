@@ -36,11 +36,25 @@ class Dataset(object):
         return get_transformer_embeddings(self.examples + self.categories, model, tokenizer)
 
 
-def _prepare_text(df, text_column, category_column):
+def _prepare_text(df, text_column):
     text = df[text_column].tolist()
-    categories = df[category_column].unique().tolist()
+    categories = df["category"].unique().tolist()
     return text + categories
 
+def _prepare_category_names(df):
+    """
+    Category names must be in the order implied by their integer label counterpart
+    e.g.  If we have integer Labels and category names mapped as follows: 
+    0 --> "World"
+    1 --> "Sports"
+    2 --> "Business"
+    3 --> "Sci/Tech"
+
+    Then we must return the category names in order like 
+        ["World", "Sports", "Business", "Sci/Tech"].  NOT alphabetical!
+    """
+    mapping = set(zip(df.label, df.category))
+    return [c for l,c in sorted(mapping)]
 
 def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     """Load Amazon products dataset from AMAZON_SAMPLE_PATH."""
@@ -81,11 +95,14 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
         The embeddings.
     """
     # Check for cached data.
+    print("Checking for cached data...")
     dataset_name = dataset_name.lower()
     filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
+    print(filename)
     if os.path.exists(filename):
         return pickle_load(filename)
 
+    print(f"{dataset_name} dataset not found. Computing...")
     # Load appropriate data
     if dataset_name == "amazon":
         df = _load_amazon_products_dataset(datadir)
