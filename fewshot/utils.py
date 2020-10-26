@@ -3,6 +3,7 @@ import pickle
 import torch
 import torch.nn.functional as F
 
+from fewshot.path_helper import create_path
 
 def to_list(tensor):
     return tensor.detach().cpu().tolist()
@@ -19,6 +20,7 @@ def torch_save(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
         print(f"{filename} already exists! Please use overwrite flag.")
     else:
+        create_path(filename)
         torch.save(torch.tensor(vector, dtype=torch.float), filename)
 
 
@@ -35,6 +37,7 @@ def pickle_save(vector, filename, overwrite=False):
     if os.path.exists(filename) and not overwrite:
         print(f"{filename} already exists! Please use overwrite flag.")
     else:
+        create_path(filename)
         pickle.dump(vector, open(filename, "wb"))
 
 

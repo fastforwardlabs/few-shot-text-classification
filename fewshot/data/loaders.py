@@ -121,7 +121,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     dataset = Dataset(
         examples=df[text_column].tolist(),
         labels=df.label.tolist(),
-        categories=_prepare_category_names(),
+        categories=_prepare_category_names(df),
     )
 
     pickle_save(dataset, filename)
