@@ -22,7 +22,7 @@ import pdb
 
 DATASET_NAME = "AGNews"
 DATADIR = f"data/{DATASET_NAME}"
-W2VDIR = "data"
+W2VDIR = "data/w2v"
 TOPK = 3
 
 ## Load data
@@ -44,7 +44,6 @@ score_intop3 = simple_topk_accuracy(dataset.labels, predictions)
 print(f"Score: {score}")
 print(f"Score considering the top {TOPK} best labels: {score_intop3}")
 
-pdb.set_trace()
 ### Visualize our data and labels
 # TODO: t-SNE or UMAP figure
 
@@ -71,6 +70,7 @@ for topw in [1000, 10000, 100000]:
         cached_data = torch_load(sbert_w2v_filename)
         sbert_embeddings_w2v_words = cached_data["embeddings"]
     else:
+        model, tokenizer = load_transformer_model_and_tokenizer()
         sbert_embeddings_w2v_words = get_transformer_embeddings(
             w2v_words, model, tokenizer, output_filename=sbert_w2v_filename
         )
@@ -81,11 +81,12 @@ for topw in [1000, 10000, 100000]:
 
     ### Compute new predictions utilizing the learned projection
     predictions = compute_predictions_projection(
-        sbert_desc_embeddings, sbert_label_embeddings, projection_matrix, k=3
+        sbert_emb_examples, sbert_emb_labels, projection_matrix, k=3
     )
-    scores.append(
-        f1_score(dataset.labels, [x.best for x in predictions], average="weighted"))
-    scores_intop3.append(simple_topk_accuracy(df.label.tolist(), predictions))
+    score = f1_score(dataset.labels, [x.best for x in predictions], average="weighted")
+    score3 = simple_topk_accuracy(dataset.labels, predictions)
+    print(f"Score using projection matrix with top {topw} w2v words: {score}")
+    print(f"Score considering the top {TOPK} best labels: {score3}")
 
 ### Visualize our modified data and label embeddings
 

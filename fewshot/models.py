@@ -43,6 +43,8 @@ def load_word_vector_model(small=True, cache_dir=None):
         r = requests.get(url, allow_redirects=True)
         open(filename, "wb").write(r.content)
 
+        create_small_w2v_model()
+
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
 
