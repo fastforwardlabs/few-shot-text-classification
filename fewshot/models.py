@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from fewshot.path_helper import fewshot_filename
+from fewshot.path_helper import fewshot_filename, create_path
 
 MODEL_NAME = "deepset/sentence_bert"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -41,54 +41,28 @@ def load_word_vector_model(small=True, cache_dir=None):
 
         url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
         r = requests.get(url, allow_redirects=True)
+        create_path(filename)
         open(filename, "wb").write(r.content)
 
-        create_small_w2v_model()
+        create_small_w2v_model(cache_dir)
 
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
 
 
-def save_word2vec_format(fname, vocab, vector_size, binary=True):
-    """
-    Store the input-hidden weight matrix in the same format used by
-    the original C word2vec-tool, for compatibility.
+def create_small_w2v_model(cache_dir=None):
+    orig_model = load_word_vector_model(small=False, cache_dir=cache_dir)
+    words = orig_model.index2entity[:500000]
 
-    Parameters
-    ----------
-    fname : str
-        The file path used to save the vectors in.
-    vocab : dict
-        The vocabulary of words.
-    vector_size : int
-        The number of dimensions of word vectors.
-    binary : bool, optional
-        If True, the data wil be saved in binary word2vec format,
-        else it will be saved in plain text.
-    """
-    total_vec = len(vocab)
-    with gensim.utils.smart_open(fname, "wb") as fout:
-        print(total_vec, vector_size)
-        fout.write(gensim.utils.to_utf8("%s %s\n" % (total_vec, vector_size)))
-        # store in sorted order: most frequent words at the top
-        for word, row in tqdm(vocab.items()):
-            if binary:
-                row = row.astype(np.float32)
-                fout.write(gensim.utils.to_utf8(word) + b' ' + row.tostring())
-            else:
-                fout.write(
-                    gensim.utils.to_utf8(
-                        "%s %s\n" % (word, " ".join(repr(val) for val in row))
-                    )
-                )
+    kv = KeyedVectors(vector_size = orig_model.wv.vector_size)
 
+    vectors = []
+    for word in words:
+        vectors.append(orig_model.get_vector(word))
 
-def create_small_w2v_model():
-    orig_model = load_word_vector_model(small=False)
-    top500k = orig_model.index2entity[:500000]
+    # adds keys (words) & vectors as batch
+    kv.add(words, vectors)  
 
-    w2v_small = {}
-    for word in top500k:
-        w2v_small[word] = orig_model.get_vector(word)
+    w2v_small_filename = fewshot_filename(cache_dir, W2V_SMALL)
+    kv.save_word2vec_format(w2v_small_filename, binary=True)
 
-    save_word2vec_format(W2V_SMALL, vocab=w2v_small, vector_size=300, binary=True)
