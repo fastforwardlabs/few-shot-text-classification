@@ -71,10 +71,10 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     return df
 
 
-def _load_agnews_dataset():
+def _load_agnews_dataset(split='test'):
     """Load AG News dataset from dataset library."""
-    dataset = load_dataset("ag_news")
-    df = pd.DataFrame(dataset["test"])
+    dataset = load_dataset("ag_news", split=split)
+    df = pd.DataFrame(dataset)
     # categories = dataset["test"].features["label"].names
     df["category"] = df["label"].map(
         {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
