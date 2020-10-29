@@ -8,24 +8,23 @@ from sklearn.metrics import f1_score
 
 from fewshot.embeddings.word_embeddings import (
     load_word_vector_model,
-    get_topk_w2v_vectors,    
+    get_topk_w2v_vectors,
 )
 from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings,
 )
-from fewshot.metrics import simple_accuracy, simple_topk_accuracy 
-   
-from fewshot.predictions import compute_predictions, \
-    compute_predictions_projection
+from fewshot.metrics import simple_accuracy, simple_topk_accuracy
+
+from fewshot.predictions import compute_predictions, compute_predictions_projection
 
 from fewshot.data.loaders import load_or_cache_data
 
 from fewshot.utils import (
-    torch_load, 
-    to_tensor, 
-    fewshot_filename, 
-    compute_projection_matrix
+    torch_load,
+    to_tensor,
+    fewshot_filename,
+    compute_projection_matrix,
 )
 
 import pdb
@@ -70,8 +69,7 @@ scores = []
 scores_intop3 = []
 
 for topw in [1000, 10000, 100000]:
-    w2v_embeddings_w2v_words, w2v_words = get_topk_w2v_vectors(w2v_model,
-                                                                   k=topw)
+    w2v_embeddings_w2v_words, w2v_words = get_topk_w2v_vectors(w2v_model, k=topw)
     w2v_embeddings_w2v_words = to_tensor(w2v_embeddings_w2v_words)
 
     sbert_w2v_filename = fewshot_filename(
@@ -97,7 +95,7 @@ for topw in [1000, 10000, 100000]:
     score = simple_accuracy(dataset.labels, predictions)
     score3 = simple_topk_accuracy(dataset.labels, predictions)
     print(f"Score using projection matrix with top {topw} w2v words: {score}")
-    #print(f"Score considering the top {TOPK} best labels: {score3}")
+    # print(f"Score considering the top {TOPK} best labels: {score3}")
 
 ### Visualize our modified data and label embeddings
 

@@ -5,6 +5,7 @@ import pathlib
 import torch
 import torch.nn.functional as F
 
+
 def to_list(tensor):
     return tensor.detach().cpu().tolist()
 
@@ -72,7 +73,8 @@ def fewshot_filename(*paths) -> str:
         result_path /= path
     return str(result_path)
 
-#TODO: This should go somehwere else
+
+# TODO: This should go somehwere else
 def compute_projection_matrix(X, Y):
     """
   compute projection matrix of best fit, w, that transforms X to Y according to:

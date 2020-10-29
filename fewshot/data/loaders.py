@@ -72,7 +72,7 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     return df
 
 
-def _load_agnews_dataset(split='test'):
+def _load_agnews_dataset(split="test"):
     """Load AG News dataset from dataset library."""
     dataset = load_dataset("ag_news", split=split)
     df = pd.DataFrame(dataset)

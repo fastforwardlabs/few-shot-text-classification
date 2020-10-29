@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, TensorDataset, SequentialSampler
 
 from fewshot.utils import create_path
 
-MODEL_NAME = 'deepset/sentence_bert'
+MODEL_NAME = "deepset/sentence_bert"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -21,18 +21,22 @@ def batch_tokenize(text_list, tokenizer, max_length=384):
     """
     How is this different from tokenizer.encode_plus?
     """
-    features = tokenizer.batch_encode_plus(text_list,
-                                        return_tensors='pt',
-                                        padding='max_length',
-                                        max_length=max_length,
-                                        truncation=True)
+    features = tokenizer.batch_encode_plus(
+        text_list,
+        return_tensors="pt",
+        padding="max_length",
+        max_length=max_length,
+        truncation=True,
+    )
     return features
 
+
 def prepare_dataset(features):
-    dataset = TensorDataset(features["input_ids"],
-                            features['attention_mask'],
-                            features['token_type_ids'])
+    dataset = TensorDataset(
+        features["input_ids"], features["attention_mask"], features["token_type_ids"]
+    )
     return dataset
+
 
 def compute_embeddings(dataset, model, batch_size=16, **kwargs):
     dataloader = DataLoader(dataset, batch_size=batch_size)
@@ -59,11 +63,12 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
 
     return all_embeddings
 
+
 def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **kwargs):
     """
     data -> list: list of text
     """
-    #TODO: logging!
+    # TODO: logging!
 
     features = batch_tokenize(data, tokenizer, **kwargs)
     dataset = prepare_dataset(features)
@@ -71,6 +76,9 @@ def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **k
 
     if output_filename:
         create_path(output_filename)
-        torch.save({"features": features, "dataset": dataset, "embeddings":embeddings}, output_filename)
+        torch.save(
+            {"features": features, "dataset": dataset, "embeddings": embeddings},
+            output_filename,
+        )
 
     return embeddings
