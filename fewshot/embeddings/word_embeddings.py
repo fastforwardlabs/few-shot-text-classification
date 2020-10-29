@@ -11,7 +11,7 @@ import string
 from nltk.corpus import stopwords
 from gensim.models.keyedvectors import KeyedVectors
 
-from fewshot.path_helper import fewshot_filename, create_path
+from fewshot.utils import fewshot_filename, create_path
 
 
 ORIGINAL_W2V = "GoogleNews-vectors-negative300.bin.gz"

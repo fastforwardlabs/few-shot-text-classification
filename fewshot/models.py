@@ -4,12 +4,11 @@ import requests
 import gensim
 from gensim.models.keyedvectors import KeyedVectors
 from tqdm import tqdm
-import numpy as np
 
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from fewshot.path_helper import fewshot_filename, create_path
+from fewshot.utils import fewshot_filename, create_path
 
 MODEL_NAME = "deepset/sentence_bert"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

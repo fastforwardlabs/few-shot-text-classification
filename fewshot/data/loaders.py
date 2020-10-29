@@ -9,8 +9,7 @@ from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings,
 )
-from fewshot.path_helper import fewshot_filename
-from fewshot.utils import pickle_load, pickle_save
+from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"

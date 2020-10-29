@@ -14,13 +14,19 @@ from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings,
 )
-from fewshot.metrics import simple_accuracy, simple_topk_accuracy    
-from fewshot.path_helper import fewshot_filename
+from fewshot.metrics import simple_accuracy, simple_topk_accuracy 
+   
 from fewshot.predictions import compute_predictions, \
     compute_predictions_projection
 
 from fewshot.data.loaders import load_or_cache_data
-from fewshot.utils import torch_load, to_tensor, compute_projection_matrix
+
+from fewshot.utils import (
+    torch_load, 
+    to_tensor, 
+    fewshot_filename, 
+    compute_projection_matrix
+)
 
 import pdb
 

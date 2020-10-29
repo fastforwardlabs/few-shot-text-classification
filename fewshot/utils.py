@@ -1,9 +1,9 @@
 import os
 import pickle
+import pathlib
+
 import torch
 import torch.nn.functional as F
-
-from fewshot.path_helper import create_path
 
 def to_list(tensor):
     return tensor.detach().cpu().tolist()
@@ -46,8 +46,33 @@ def pickle_load(filename):
         return pickle.load(open(filename, "rb"))
     else:
         print(f"{filename} does not exist!")
-        
 
+
+def create_path(pathname: str) -> None:
+    """Creates the directory for the given path if it doesn't already exist."""
+    dir = str(pathlib.Path(pathname).parent)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+
+def fewshot_filename(*paths) -> str:
+    """Given a path relative to this project's top-level directory, returns the
+    full path in the OS.
+
+    Args:
+        paths: A list of folders/files.  These will be joined in order with "/"
+            or "\" depending on platform.
+
+    Returns:
+        The full absolute path in the OS.
+    """
+    # First parent gets the scripts directory, and the second gets the top-level.
+    result_path = pathlib.Path(__file__).resolve().parent.parent
+    for path in paths:
+        result_path /= path
+    return str(result_path)
+
+#TODO: This should go somehwere else
 def compute_projection_matrix(X, Y):
     """
   compute projection matrix of best fit, w, that transforms X to Y according to:

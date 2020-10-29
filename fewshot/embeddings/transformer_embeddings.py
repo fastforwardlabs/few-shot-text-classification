@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from torch.utils.data import DataLoader, TensorDataset, SequentialSampler
 
-from fewshot.path_helper import create_path
+from fewshot.utils import create_path
 
 MODEL_NAME = 'deepset/sentence_bert'
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
