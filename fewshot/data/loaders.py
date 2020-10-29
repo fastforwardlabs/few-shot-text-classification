@@ -5,8 +5,10 @@ from typing import List
 import pandas as pd
 from datasets import load_dataset
 
-from fewshot.embeddings.transformer_embeddings import get_transformer_embeddings
-from fewshot.models import load_transformer_model_and_tokenizer
+from fewshot.embeddings.transformer_embeddings import (
+    load_transformer_model_and_tokenizer,
+    get_transformer_embeddings,
+)
 from fewshot.path_helper import fewshot_filename
 from fewshot.utils import pickle_load, pickle_save
 

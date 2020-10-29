@@ -6,11 +6,15 @@ import pandas as pd
 from datasets import load_dataset
 from sklearn.metrics import f1_score
 
-import fewshot.embeddings.word_embeddings as w2v
-from fewshot.embeddings.transformer_embeddings import get_transformer_embeddings
-from fewshot.metrics import simple_accuracy, simple_topk_accuracy
-from fewshot.models import load_transformer_model_and_tokenizer, \
-    load_word_vector_model
+from fewshot.embeddings.word_embeddings import (
+    load_word_vector_model,
+    get_topk_w2v_vectors,    
+)
+from fewshot.embeddings.transformer_embeddings import (
+    load_transformer_model_and_tokenizer,
+    get_transformer_embeddings,
+)
+from fewshot.metrics import simple_accuracy, simple_topk_accuracy    
 from fewshot.path_helper import fewshot_filename
 from fewshot.predictions import compute_predictions, \
     compute_predictions_projection
@@ -60,7 +64,7 @@ scores = []
 scores_intop3 = []
 
 for topw in [1000, 10000, 100000]:
-    w2v_embeddings_w2v_words, w2v_words = w2v.get_topk_w2v_vectors(w2v_model,
+    w2v_embeddings_w2v_words, w2v_words = get_topk_w2v_vectors(w2v_model,
                                                                    k=topw)
     w2v_embeddings_w2v_words = to_tensor(w2v_embeddings_w2v_words)
 
