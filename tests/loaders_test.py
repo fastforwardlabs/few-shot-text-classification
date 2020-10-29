@@ -5,7 +5,7 @@ import mock
 from parameterized import parameterized
 
 from fewshot.data.loaders import load_or_cache_sbert_embeddings
-from fewshot.path_helper import fewshot_filename
+from fewshot.utils import fewshot_filename
 
 
 class AnyObj(object):
