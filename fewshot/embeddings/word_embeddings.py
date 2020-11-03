@@ -18,26 +18,24 @@ ORIGINAL_W2V = "GoogleNews-vectors-negative300.bin.gz"
 W2V_SMALL = "GoogleNews-vectors-negative300_top500k.kv"
 
 
-def load_word_vector_model(small=True, cache_dir=None):
+def load_word_vector_model(small=True, cache_dir="."):
     # TODO: be able to load GloVe or Word2Vec embedding model
     # TODO: make a smaller version that only has, say, top 100k words
     if small:
-        filename = W2V_SMALL
+        filename = fewshot_filename(cache_dir, W2V_SMALL)
     else:
-        filename = ORIGINAL_W2V
-
-    if cache_dir:
-        filename = fewshot_filename(cache_dir, filename)
+        filename = fewshot_filename(cache_dir, ORIGINAL_W2V)
 
     if not os.path.exists(filename):
-        print("Word2Vec vectors not found. Downloading...")
+        if not os.path.exists(fewshot_filename(cache_dir, ORIGINAL_W2V)):
+            print("No Word2Vec vectors not found. Downloading...")
+            url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
+            r = requests.get(url, allow_redirects=True)
+            create_path(filename)
+            open(filename, "wb").write(r.content)
 
-        url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
-        r = requests.get(url, allow_redirects=True)
-        create_path(filename)
-        open(filename, "wb").write(r.content)
-
-        create_small_w2v_model(cache_dir)
+        if small:
+            create_small_w2v_model(cache_dir)
 
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
@@ -103,7 +101,7 @@ def get_word_embeddings(word_list, w2v_model, return_not_found=True):
         try:
             vectors.append(w2v_model.get_vector(word))
         except:
-            print(f"Model does not contain an embedding vector for '{word}'")
+            #print(f"Model does not contain an embedding vector for '{word}'")
             not_found.append(word)
     if return_not_found:
         return vectors, not_found
