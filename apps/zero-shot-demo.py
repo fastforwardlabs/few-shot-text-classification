@@ -103,13 +103,13 @@ def bar_chart(df):
 
 # Import these from elsewhere to keep this clean? Cuz this could start
 # to be a looooooot of text if a put a few examples here.
-EXAMPLES = {
-    "example1": {
-        "text": """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""",
-        "labels": ["label1", "label2", "label3"],
-    },
-    "example2": {"text": "alaksfd als;kfasd", "labels": ["label1", "label2", "label3"]},
-}
+#EXAMPLES = {
+#    "example1": {
+#        "text": """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""",
+#        "labels": ["label1", "label2", "label3"],
+#    },
+#    "example2": {"text": "alaksfd als;kfasd", "labels": ["label1", "label2", "label3"]},
+#}
 
 EXAMPLES, LABELS = load_examples("agnews")
 
