@@ -75,7 +75,7 @@ def fewshot_filename(*paths) -> str:
 
 
 # TODO: This should go somehwere else
-def compute_projection_matrix(X, Y):
+def compute_projection_matrix(X, Y, alpha=0):
     """
   compute projection matrix of best fit, w, that transforms X to Y according to:
 
@@ -83,12 +83,18 @@ def compute_projection_matrix(X, Y):
 
   (X.T X)^-1 X.T Y = [(X.T X)^-1 X.T X]w
 
-  w = (X.T X)^-1 X.T Y
+  w = (X.T X + alpha*I)^-1 X.T Y
+
+  where I is the identity matrix and alpha is the amount of regularization. 
+  alpha = 0 is equivalent to OLS (ordinary least squares)
+  alpha >= 0 is ridge regression / l2 regularization
   """
     X_norm = F.normalize(X, p=2, dim=1)
     Y_norm = F.normalize(Y, p=2, dim=1)
+    I = torch.eye(len(X_norm))
 
-    Z = torch.inverse(torch.matmul(X_norm.T, X_norm))
+    inner = torch.matmul(X_norm.T, X_norm) + alpha*I
+    Z = torch.inverse(inner)
     Z = torch.matmul(Z, X_norm.T)
     w = torch.matmul(Z, Y_norm)
 
