@@ -14,7 +14,6 @@ from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 
-
 @attr.s
 class Dataset(object):
     # These are the text (news articles, product descriptions, etc.)
@@ -29,8 +28,9 @@ class Dataset(object):
     embeddings = attr.ib()
 
     @embeddings.default
-    def _get_embeddings(self):
+    def _get_embeddings(self, model_name_or_path=None):
         # Load the model and the tokenizer
+        # TODO: need to be able to pass a specific model rather than using default
         model, tokenizer = load_transformer_model_and_tokenizer()
         return get_transformer_embeddings(
             self.examples + self.categories, model, tokenizer
@@ -82,6 +82,11 @@ def _load_agnews_dataset(split: str = "test"):
     )
     return df
 
+def _load_reddit_dataset(datadir: str, num_categories: int = 8):
+    """Load a curated and smaller version of the Reddit dataset from dataset library."""
+    df = pd.read_csv(fewshot_filename(datadir, REDDIT_SAMPLE_PATH))
+    
+    return df
 
 def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     """Loads sbert embeddings.
@@ -104,7 +109,6 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     print("Checking for cached data...")
     dataset_name = dataset_name.lower()
     filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
-    print(filename)
     if os.path.exists(filename):
         return pickle_load(filename)
 
