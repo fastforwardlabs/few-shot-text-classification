@@ -13,6 +13,7 @@ from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
+REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
 
 @attr.s
 class Dataset(object):
@@ -72,6 +73,31 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     return df
 
 
+def _load_reddit_dataset(datadir: str, categories='curated'):
+    """
+    Load a curated and smaller version of the Reddit dataset from dataset library.
+    
+    There are two dataset options to choose from:
+        1. (default) "curated" categories returns reddit examples from popular subreddits
+            that have more meaningful subreddit names
+        2. "top10" categories returns reddit examples from the most popular
+            subreddits regardless of how meaningful the subreddit name is
+        3. Anything else will return all the possible categories (16 in total)
+    """
+    df = pd.read_csv(fewshot_filename(datadir, REDDIT_SAMPLE_PATH))
+    curated_subreddits = ['relationships', 'trees', 'gaming', 'funny', 'politics', \
+        'sex', 'Fitness', 'worldnews', 'personalfinance', 'technology']
+    top10_subreddits = df["category"].value_counts()[:10]
+
+    if categories == 'curated':
+        df = df[df["subreddit"].isin(curated_subreddits)]
+    elif categories == "top10":
+        df = df[df["subreddit"].isin(top10_subreddits.index.tolist())]
+    df["category"] = pd.Categorical(df.category)
+    df["label"] = df.category.cat.codes
+    return df
+    
+    
 def _load_agnews_dataset(split: str = "test"):
     """Load AG News dataset from dataset library."""
     dataset = load_dataset("ag_news", split=split)
@@ -82,11 +108,6 @@ def _load_agnews_dataset(split: str = "test"):
     )
     return df
 
-def _load_reddit_dataset(datadir: str, num_categories: int = 8):
-    """Load a curated and smaller version of the Reddit dataset from dataset library."""
-    df = pd.read_csv(fewshot_filename(datadir, REDDIT_SAMPLE_PATH))
-    
-    return df
 
 def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     """Loads sbert embeddings.
@@ -120,6 +141,9 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     elif dataset_name == "agnews":
         df = _load_agnews_dataset()
         text_column, category_column = "text", "category"
+    elif dataset_name == "reddit":
+        df = _load_reddit_dataset()
+        text_column, category_column = "summary", "category"
     else:
         raise ValueError(f"Unexpected dataset name: {dataset_name}")
 
