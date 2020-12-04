@@ -91,7 +91,7 @@ def compute_projection_matrix(X, Y, alpha=0):
   """
     X_norm = F.normalize(X, p=2, dim=1)
     Y_norm = F.normalize(Y, p=2, dim=1)
-    I = torch.eye(len(X_norm))
+    I = torch.eye(X_norm.shape[1])
 
     inner = torch.matmul(X_norm.T, X_norm) + alpha*I
     Z = torch.inverse(inner)
