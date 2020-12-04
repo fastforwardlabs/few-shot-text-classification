@@ -142,7 +142,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
         df = _load_agnews_dataset()
         text_column, category_column = "text", "category"
     elif dataset_name == "reddit":
-        df = _load_reddit_dataset()
+        df = _load_reddit_dataset(datadir)
         text_column, category_column = "summary", "category"
     else:
         raise ValueError(f"Unexpected dataset name: {dataset_name}")
