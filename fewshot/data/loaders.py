@@ -15,6 +15,7 @@ from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
 
+
 @attr.s
 class Dataset(object):
     # These are the text (news articles, product descriptions, etc.)
@@ -73,7 +74,7 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     return df
 
 
-def _load_reddit_dataset(datadir: str, categories='curated'):
+def _load_reddit_dataset(datadir: str, categories="curated"):
     """
     Load a curated and smaller version of the Reddit dataset from dataset library.
     
@@ -85,19 +86,29 @@ def _load_reddit_dataset(datadir: str, categories='curated'):
         3. Anything else will return all the possible categories (16 in total)
     """
     df = pd.read_csv(fewshot_filename(datadir, REDDIT_SAMPLE_PATH))
-    curated_subreddits = ['relationships', 'trees', 'gaming', 'funny', 'politics', \
-        'sex', 'Fitness', 'worldnews', 'personalfinance', 'technology']
+    curated_subreddits = [
+        "relationships",
+        "trees",
+        "gaming",
+        "funny",
+        "politics",
+        "sex",
+        "Fitness",
+        "worldnews",
+        "personalfinance",
+        "technology",
+    ]
     top10_subreddits = df["category"].value_counts()[:10]
 
-    if categories == 'curated':
+    if categories == "curated":
         df = df[df["subreddit"].isin(curated_subreddits)]
     elif categories == "top10":
         df = df[df["subreddit"].isin(top10_subreddits.index.tolist())]
     df["category"] = pd.Categorical(df.category)
     df["label"] = df.category.cat.codes
     return df
-    
-    
+
+
 def _load_agnews_dataset(split: str = "test"):
     """Load AG News dataset from dataset library."""
     dataset = load_dataset("ag_news", split=split)
@@ -107,6 +118,14 @@ def _load_agnews_dataset(split: str = "test"):
         {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
     )
     return df
+
+
+def _create_dataset_from_df(df, text_column: str):
+    dataset = Dataset(
+        examples=df[text_column].tolist(),
+        labels=df.label.tolist(),
+        categories=_prepare_category_names(df),
+    )
 
 
 def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
@@ -147,11 +166,29 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     else:
         raise ValueError(f"Unexpected dataset name: {dataset_name}")
 
-    dataset = Dataset(
-        examples=df[text_column].tolist(),
-        labels=df.label.tolist(),
-        categories=_prepare_category_names(df),
-    )
+    _create_dataset_from_df(df, text_column)
 
     pickle_save(dataset, filename)
+    return dataset
+
+
+def expand_labels(dataset):
+    """ 
+    When performing supervised learning (e.g. few-shot), we will need a label embedding for 
+    each example in the dataset. Most datasets only have a handful of labels (4-10).
+    Passing these repeatedly through SBERT for each example is slow, repetitive and
+    unnecessarily expensive. 
+
+    Instead we'll restructure the dataset attributes. Originally instantiated, each label 
+    has already been passed through SBERT and is stored in dataset.embeddings 
+    as the last N items in the list. These are used to build out a full label embedding tensor.
+    Additionally, dataset.embeddings is repurposed to contain ONLY example embeddings 
+    rather than example AND label embeddings
+    """
+
+    num_labels = len(dataset.categories)
+    label_embeddings = to_list(dataset.embeddings[-num_labels:])
+
+    dataset.label_embeddings = to_tensor([label_embeddings[label] for label in dataset.labels])
+    dataset.embeddings = dataset.embeddings[:-num_labels]
     return dataset
