@@ -1,10 +1,13 @@
+import tqdm
 
-import torch 
+import torch
+from torch.utils.data import DataLoader, TensorDataset, RandomSampler
+
 
 class FewShotLinearRegression(torch.nn.Module):
     def __init__(self, input_dim, output_dim, loss_fcn, lr, device=None):
         super(FewShotLinearRegression, self).__init__()
-        self.linear = torch.nn.Linear(input_dim, output_dim, bias=False)        
+        self.linear = torch.nn.Linear(input_dim, output_dim, bias=False)
 
         # initialize the weights in the linear layer to zeros
         torch.nn.init.zeros_(self.linear.weight)
@@ -17,47 +20,66 @@ class FewShotLinearRegression(torch.nn.Module):
         out = self.linear(x)
         return out
 
-    def train(self, data_loader, num_epochs, lam):
-        history = []
-
-        ##### For GPU #######
-        if self.device == 'cuda' and torch.cuda.is_available():
-            self.cuda()
-
-        for _ in tqdm(range(num_epochs), desc="Epoch"):
-            total_loss = 0   
-            for step, batch in enumerate(data_loader):
-                batch = tuple(t.to(self.device) for t in batch)
-                X_batch = batch[0]
-                Y_batch = batch[1]
-
-                output = model(X_batch)
-
-                loss = self.loss_fcn(output, Y_batch, self.linear.weight, lam) 
-                total_loss += loss.item()
-
-                self.optimizer.zero_grad()                
-                loss.backward()
-                self.optimizer.step()
-
-            history.append(total_loss)
-      
-        return history
-
 
 class BayesianMSELoss(torch.nn.Module):
     """ Mean Reciprocal Rank Loss """
+
     def __init__(self, device=None):
         super(BayesianMSELoss, self).__init__()
         self.device = device
 
     def forward(self, x, y, w, lam):
-        # The first part of the loss function is just standard MSE 
+        # The first part of the loss function is just standard MSE
         # and represents our prior ??
         err1 = torch.nn.functional.mse_loss(x, y)
-        # The second part ... 
+        # The second part ...
         # TODO: think through how to explain this!!
         identity = torch.eye(w.size()[1], device=self.device)
-        err2 = torch.sum((w - identity)**2) / x.data.nelement()
-        return err1 + lam*err2
+        err2 = torch.sum((w - identity) ** 2) / x.data.nelement()
+        return err1 + lam * err2
 
+
+def prepare_dataloader(dataset, Z, batch_size=50):
+    """
+    When training the Wmap matrix, the input requires 
+  
+    * that both the example embeddings and the label embeddings have already 
+      been transformed with a Zmap
+    * that these tensors are wrapped in PyTorch DataLoader abstraction
+    """
+
+    X_train = torch.mm(dataset.embeddings, Z)
+    y_train = torch.mm(dataset.label_embeddings, Z)
+
+    tensor_dataset = TensorDataset(X_train, y_train)
+    data_loader = DataLoader(tensor_dataset, shuffle=True, batch_size=batch_size)
+
+    return data_loader
+
+
+def train(model, data_loader, num_epochs, lam, device="cuda"):
+    history = []
+
+    ##### For GPU #######
+    if device == "cuda" and torch.cuda.is_available():
+        model.to("cuda")
+
+    for _ in tqdm(range(num_epochs), desc="Epoch"):
+        total_loss = 0
+        for step, batch in enumerate(data_loader):
+            batch = tuple(t.to(device) for t in batch)
+            X_batch = batch[0]
+            Y_batch = batch[1]
+
+            output = model(X_batch)
+
+            loss = model.loss_fcn(output, Y_batch, model.linear.weight, lam)
+            total_loss += loss.item()
+
+            model.optimizer.zero_grad()
+            loss.backward()
+            model.optimizer.step()
+
+        history.append(total_loss)
+
+    return history
