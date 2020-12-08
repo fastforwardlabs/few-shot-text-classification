@@ -3,7 +3,7 @@ import torch
 
 class FewShotLinearRegression(torch.nn.Module):
     def __init__(self, input_dim, output_dim, loss_fcn, lr, device=None):
-        super(LinearRegressor, self).__init__()
+        super(FewShotLinearRegression, self).__init__()
         self.linear = torch.nn.Linear(input_dim, output_dim, bias=False)        
 
         # initialize the weights in the linear layer to zeros
