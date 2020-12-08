@@ -121,7 +121,7 @@ def _load_agnews_dataset(split: str = "test"):
 
 
 def _create_dataset_from_df(df, text_column: str):
-    dataset = Dataset(
+    return Dataset(
         examples=df[text_column].tolist(),
         labels=df.label.tolist(),
         categories=_prepare_category_names(df),
@@ -166,8 +166,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     else:
         raise ValueError(f"Unexpected dataset name: {dataset_name}")
 
-    _create_dataset_from_df(df, text_column)
-
+    dataset = _create_dataset_from_df(df, text_column)
     pickle_save(dataset, filename)
     return dataset
 
