@@ -9,7 +9,13 @@ from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings,
 )
-from fewshot.utils import pickle_load, pickle_save, fewshot_filename
+from fewshot.utils import (
+    to_list,
+    to_tensor,
+    pickle_load, 
+    pickle_save, 
+    fewshot_filename
+)
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
@@ -189,5 +195,5 @@ def expand_labels(dataset):
     label_embeddings = to_list(dataset.embeddings[-num_labels:])
 
     dataset.label_embeddings = to_tensor([label_embeddings[label] for label in dataset.labels])
-    dataset.embeddings = dataset.embeddings[:-num_labels]
+    #dataset.embeddings = dataset.embeddings[:-num_labels]
     return dataset

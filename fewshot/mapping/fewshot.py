@@ -1,4 +1,4 @@
-import tqdm
+from tqdm.notebook import tqdm, tnrange
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
@@ -47,8 +47,8 @@ def prepare_dataloader(dataset, Z, batch_size=50):
       been transformed with a Zmap
     * that these tensors are wrapped in PyTorch DataLoader abstraction
     """
-
-    X_train = torch.mm(dataset.embeddings, Z)
+    example_embeddings = dataset.embeddings[:-len(dataset.categories)]
+    X_train = torch.mm(example_embeddings, Z)
     y_train = torch.mm(dataset.label_embeddings, Z)
 
     tensor_dataset = TensorDataset(X_train, y_train)
