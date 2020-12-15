@@ -22,28 +22,42 @@ IMAGEDIR = "images"
 MODEL_NAME = "deepset/sentence_bert"
 BORDER_COLORS = ["#00828c", "#ff8300"]
 COLORS = ["#00a1ad"]
+BASEUMAP = DATADIR+"/umap/umap_base_agnews.pkl"
+ZMAPUMAP = DATADIR+"/umap/umap_zmap_agnews.pkl"
 
 
 @st.cache(allow_output_mutation=True)
-def load_examples(data_name='agnews'):
-    if data_name not in ['agnews', 'amazon']:
+def load_examples(data_name="agnews"):
+    if data_name not in ["agnews", "reddit"]:
         print("Dataset name not found!")
         return
-    
-    dataset = load_or_cache_data(DATADIR+"/"+data_name, data_name)
-    
-    if data_name == 'agnews':
-        example_idx = [142, 811, 1201, 1440, 1767, 1788]
-        
+
+    dataset = load_or_cache_data(DATADIR + "/" + data_name, data_name)
+
+    if data_name == "agnews":
+        # cherry-picked example indexes
+        #example_idx = [142, 811, 1201, 1440, 1767, 1788]
+        example_idx = [200, 1582, 2754, 3546, 3825, 5129, 6574]
+        titles = [
+            "Strong Family Equals Strong Education", 
+            "Hurricane Ivan Batters Grand Cayman",
+            "Supernova Warning System Will Give Astronomers Earlier Notice",
+            "Study: Few Americans Buy Drugs Online",
+            "Red Sox Feeling Heat of 0-2 Start in ALCS",
+            "Product Previews palmOneUpgrades Treo With Faster Chip, Better Display",
+            "Is this the end of IT as we know it? "
+        ]
+
     examples = {}
-    for idx in example_idx:
+    for i, idx in enumerate(example_idx):
         text = dataset.examples[idx]
-        title = " ".join(text.split()[:5])+"..."
+        #title = " ".join(text.split()[:5]) + "..."
+        title = titles[i]
         examples[title] = text
 
     return examples, dataset.categories
 
-
+# TODO: rewrite this whole thing.
 @st.cache(allow_output_mutation=True)
 def load_projection_matrices():
     filenames = glob.glob(fewshot_filename(DATADIR, "projection_matrices/*top*.pkl"))
@@ -81,6 +95,8 @@ def get_transformer_embeddings(data):
 
 
 def bar_chart(df):
+    print("in bar chart")
+    print(df)
     fig = px.bar(
         df,
         x="scores",
@@ -101,42 +117,125 @@ def bar_chart(df):
     st.plotly_chart(fig)
 
 
+def plot_umap(umap_embeddings, dataset, example_idx=None, predictions=None):
+    num_categories = len(dataset.categories)
+    examples = umap_embeddings[:-num_categories]
+    labels = umap_embeddings[-num_categories:]
+
+    colors = [sns.color_palette()[x] for x in np.unique(dataset.labels)]
+
+    fig = plt.figure(figsize=(10, 10))
+    plt.scatter(
+        examples[:, 0],
+        examples[:, 1],
+        alpha=0.25,
+        s=5,
+        c=[sns.color_palette()[x] for x in dataset.labels],
+    )
+
+    for i, category in enumerate(dataset.categories):
+        plt.plot(
+            labels[i, 0],
+            labels[i, 1],
+            marker="s",
+            ms=10,
+            color=colors[i],
+            markeredgecolor="k",
+        )
+        plt.text(
+            labels[i, 0] + 0.15,
+            labels[i, 1] + 0.15,
+            category,
+            fontsize=18,
+            fontweight=650,
+            bbox={"facecolor": colors[i], "alpha": 0.25, "pad": 1},
+        )
+
+    if example_idx is not None:
+        if predictions is not None:
+            color = colors[predictions[example_idx].best]
+        else:
+            color = "black"
+        plt.plot(
+            examples[example_idx, 0],
+            examples[example_idx, 1],
+            alpha=0.8,
+            marker="*",
+            ms=25,
+            color=color,
+            markeredgecolor="k",
+        )
+
+    plt.axis("off")
+
+
 # Import these from elsewhere to keep this clean? Cuz this could start
 # to be a looooooot of text if a put a few examples here.
-#EXAMPLES = {
+# EXAMPLES = {
 #    "example1": {
 #        "text": """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""",
 #        "labels": ["label1", "label2", "label3"],
 #    },
 #    "example2": {"text": "alaksfd als;kfasd", "labels": ["label1", "label2", "label3"]},
-#}
+# }
 
 EXAMPLES, LABELS = load_examples("agnews")
 
 PROJECTIONS = load_projection_matrices()
 
 ### ------- SIDEBAR ------- ###
-image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward-logo.png"))
+image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward.png"))
 st.sidebar.image(image, use_column_width=True)
-st.sidebar.text("ipsom lorum")
+st.sidebar.markdown(
+    "This prototype accompanies our [Few-Shot Text Classification](LINK) report in which we\
+     explore how text embeddings can be used for few- and zero-shot text classification."
+)
+st.sidebar.markdown(
+    "In this technique, the text and each of the labels is embedded into the same embedding space.\
+    The text is then assigned the label whose embedding is most similar to the text's embedding."
+)
+st.sidebar.markdown("")
+
+st.sidebar.markdown("#### Model")
+# TODO: Add other model options?
+st.sidebar.markdown(
+    "Text and label embeddings are first computed with **Sentence-BERT**. Used alone,\
+     Sentence-BERT works well for some datasets, and does not require any training data."
+)
+st.sidebar.markdown("")
 
 projection_selection = st.sidebar.selectbox(
-    "Projection", [None] + list(PROJECTIONS.keys())
+    "Classifier enhancement", [None] + list(PROJECTIONS.keys())
+)
+st.sidebar.markdown("#### Enhancements")
+st.sidebar.markdown(
+    "SBERT won't always embed labels well because they are typically *single* words,\
+     whereas SBERT is optimized for *sentences*"
+)
+
+st.sidebar.markdown(
+    "Selecting a **Zmap** from the Enhancements dropdown will transform SBERT embeddings\
+     into word2vec space, since word2vec embeddings are better optimized for single words."
+)
+
+st.sidebar.markdown(
+    "Selecting a **Wmap** from the Enhancements dropdown will apply a supervised learning\
+     transformation, in which training data has been used to better capture complex semantic meaning "
 )
 
 ### ------- MAIN ------- ###
-st.title("Zero-Shot Text Classification")
+st.title("Few-Shot Text Classification")
 
 ## load some agnews examples
 
 example = st.selectbox("Choose an example", list(EXAMPLES.keys()))
 
 text_input = st.text_area("Text", EXAMPLES[example], height=200)
-label_input = st.text_input(
-    "Possible labels (separated by `,`)", ", ".join(LABELS)
-)
-
+label_input = st.text_input("Possible labels (separated by `,`)", ", ".join(LABELS))
 label_list = label_input.split(", ")
+
+# TODO: make this smarter so that we aren't recomputing the input text
+# just because the list of labels might have changed
 data = [text_input] + label_list
 
 model, tokenizer = load_transformer_model_and_tokenizer()
@@ -157,11 +256,14 @@ if projection_selection:
     predictions = compute_predictions_projection(
         text_emb, label_emb, PROJECTIONS[projection_selection], k=len(data) - 1
     )
+    umap_embeddings = pickle_load(ZMAPUMAP)
 else:
     ### Compute predictions based on cosine similarity
     predictions = compute_predictions(embeddings[:2], embeddings[1:], k=len(data) - 1)
+    umap_embeddings = pickle_load(BASEUMAP)
 
 df = predictions[0].to_df()
 df["labels"] = [label_list[c] for c in df.closest]
-
 bar_chart(df)
+
+#plot_umap(umap_embeddings, )
