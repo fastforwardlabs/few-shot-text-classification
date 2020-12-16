@@ -1,20 +1,28 @@
 import torch
 import torch.functional as F 
 
-def fit_Zmap_matrix(X, Y, alpha=0):
+
+def OLS_with_l2_regularization(X, Y, alpha=0):
     """
-  compute projection matrix of best fit, w, that transforms X to Y according to:
+    Ordinary least squares with l2 regularization can be expressed in closed form, 
+    meaning that we do not need to perform gradient descent in order
+    to find the best fit solution! 
+    For more information on the derivation of the closed-form expression, 
+    check it the Wikipedia page here: 
+    https://en.wikipedia.org/wiki/Ordinary_least_squares#Matrix/vector_formulation
 
-  Y = Xw
+    In brief: we find a matrix, w, that transforms X to Y according to:
 
-  (X.T X)^-1 X.T Y = [(X.T X)^-1 X.T X]w
+    Y = Xw
 
-  w = (X.T X + alpha*I)^-1 X.T Y
+    (X.T X)^-1 X.T Y = [(X.T X)^-1 X.T X]w
 
-  where I is the identity matrix and alpha is the amount of regularization. 
-  alpha = 0 is equivalent to OLS (ordinary least squares)
-  alpha >= 0 is ridge regression / l2 regularization
-  """
+    w = (X.T X + alpha*I)^-1 X.T Y
+
+    where I is the identity matrix and alpha is the amount of regularization. 
+    alpha = 0 is equivalent to OLS (ordinary least squares)
+    alpha >= 0 is ridge regression / l2 regularization
+    """
     X_norm = F.normalize(X, p=2, dim=1)
     Y_norm = F.normalize(Y, p=2, dim=1)
     I = torch.eye(X_norm.shape[1])
