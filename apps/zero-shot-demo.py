@@ -57,21 +57,19 @@ def load_examples(data_name="agnews"):
 
     return examples, dataset.categories
 
-# TODO: rewrite this whole thing.
-@st.cache(allow_output_mutation=True)
-def load_projection_matrices():
-    filenames = glob.glob(fewshot_filename(DATADIR, "projection_matrices/*top*.pkl"))
-    PROJECTIONS = {}
-    for filename in filenames:
-        proj_name = " ".join(re.split("\_|\.", filename)[3:-1])
-        proj_matrix = pickle_load(filename)
-        PROJECTIONS[proj_name] = proj_matrix
 
-    W = pickle_load(
-        fewshot_filename(DATADIR, "projection_matrices/Wmap_lr01_lam10_400train.pkl")
-    )
-    PROJECTIONS["Few-shot learned from AGNews"] = W
-    return PROJECTIONS
+@st.cache(allow_output_mutation=True)
+def load_mapping_matrices():
+    zmap_basic = torch_load(fewshot_filename(DATADIR+"/Zmaps", "Zmap_20k_w2v_words_alpha0.pt"))
+    zmap_optimized = torch_load(fewshot_filename(DATADIR+"/Zmaps", "Zmap_20k_w2v_words_alpha10_news.pt"))
+    wmap = torch_load(fewshot_filename(DATADIR+"/Wmaps", "Wmap_agnews_lr0.1_lam500_500expercat.pt"))
+
+    MAPPINGS = {
+        'Zmap (standard)': zmap_basic,
+        'Zmap (optimized for AG News)' : zmap_optimized,
+        'Wmap (trained on 2000 AG News examples)': wmap
+    }
+    return MAPPINGS
 
 
 @st.cache(allow_output_mutation=True)
@@ -168,20 +166,9 @@ def plot_umap(umap_embeddings, dataset, example_idx=None, predictions=None):
 
     plt.axis("off")
 
-
-# Import these from elsewhere to keep this clean? Cuz this could start
-# to be a looooooot of text if a put a few examples here.
-# EXAMPLES = {
-#    "example1": {
-#        "text": """Galaxy Zoo 2 did not have a predictive retirement rule, rather each galaxy received a median of 44 independent classifications. Once the project reached completion, inconsistent volunteers were down-weighted (Willett et al. 2013), a process that does not make efficient use of those who are exceptionally skilled. To intelligently manage subject retirement and increase classification efficiency, we adapt an algorithm from the Zooniverse project Space Warps (Marshall et al. 2016), which searched for and discovered several gravitational lens candidates in the CFHT Legacy Survey (More et al. 2016). Dubbed SWAP (Space Warps Analysis Pipeline), this algorithm computed the probability that an image contained a gravitational lens given volunteers’ classifications and experience after being shown a training sample consisting of simulated lensing events. We provide an overview here; interested readers are encouraged to refer to Marshall et al. (2016) for additional details.""",
-#        "labels": ["label1", "label2", "label3"],
-#    },
-#    "example2": {"text": "alaksfd als;kfasd", "labels": ["label1", "label2", "label3"]},
-# }
-
 EXAMPLES, LABELS = load_examples("agnews")
 
-PROJECTIONS = load_projection_matrices()
+MAPPINGS = load_mapping_matrices()
 
 ### ------- SIDEBAR ------- ###
 image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward.png"))
@@ -205,7 +192,7 @@ st.sidebar.markdown(
 st.sidebar.markdown("")
 
 projection_selection = st.sidebar.selectbox(
-    "Classifier enhancement", [None] + list(PROJECTIONS.keys())
+    "Classifier enhancement", [None] + list(MAPPINGS.keys())
 )
 st.sidebar.markdown("#### Enhancements")
 st.sidebar.markdown(
@@ -227,7 +214,6 @@ st.sidebar.markdown(
 st.title("Few-Shot Text Classification")
 
 ## load some agnews examples
-
 example = st.selectbox("Choose an example", list(EXAMPLES.keys()))
 
 text_input = st.text_area("Text", EXAMPLES[example], height=200)
@@ -243,18 +229,22 @@ embeddings = get_transformer_embeddings(data)
 
 ### ------- COMPUTE PREDICTIONS ------- ###
 if projection_selection:
-    if "Few-shot" in projection_selection:
+    if "Wmap" in projection_selection:
+        # If applying a Wmap, first transform text embeddings and label embeddings 
+        # with a standard Zmap
         text_emb = torch.mm(
             embeddings[0].reshape((1, len(embeddings[0]))),
-            PROJECTIONS["top10000 w2v words"],
+            MAPPINGS['Zmap (standard)'],
         )
-        label_emb = torch.mm(embeddings[1:], PROJECTIONS["top10000 w2v words"])
+        label_emb = torch.mm(embeddings[1:], MAPPINGS['Zmap (standard)'])
     else:
+        # Otherwise use just the SBERT embeddings (without any transformation)
         text_emb = embeddings[0]
         label_emb = embeddings[1:]
 
+    # compute predictions using the Wmap
     predictions = compute_predictions_projection(
-        text_emb, label_emb, PROJECTIONS[projection_selection], k=len(data) - 1
+        text_emb, label_emb, MAPPINGS[projection_selection], k=len(data) - 1
     )
     umap_embeddings = pickle_load(ZMAPUMAP)
 else:

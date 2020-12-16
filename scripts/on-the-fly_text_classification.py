@@ -14,6 +14,9 @@ from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings,
 )
+
+from fewshot.models.on-the-fly import fit_Zmap_matrix
+
 from fewshot.metrics import simple_accuracy, simple_topk_accuracy
 
 from fewshot.predictions import compute_predictions, compute_predictions_projection
@@ -24,7 +27,6 @@ from fewshot.utils import (
     torch_load,
     to_tensor,
     fewshot_filename,
-    compute_projection_matrix,
 )
 
 import pdb
@@ -84,7 +86,7 @@ for topw in [1000, 10000, 100000]:
             w2v_words, model, tokenizer, output_filename=sbert_w2v_filename
         )
 
-    projection_matrix = compute_projection_matrix(
+    projection_matrix = fit_Zmap_matrix(
         sbert_embeddings_w2v_words, w2v_embeddings_w2v_words
     )
 
