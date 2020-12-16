@@ -2,9 +2,9 @@
 
 This repo accompanies the Cloudera Fast Forward report [Few-Shot Text Classification](https://few-shot-text-classification.fastforwardlabs.com/). It provides an example application of classification using latent text embeddings with [Sentence-BERT](https://www.sbert.net/) to the AG News dataset containing thousands of news articles. 
 
-The primary output of this repository is a small application exposing a probablistic forecast and interface for asking a probabilistic question against it. The final app looks like this.
+The primary output of this repository is a small application the allows one to interact with text data and perform classification under several limited-labeled-data regimes. 
 
-
+<img src="images/fewshot_app.png" alt="Few-Shot Text Classification app interface" width="80%">
 
 Instructions are given both for general use (on a laptop, say), and for Cloudera CML and CDSW. We'll first describe what's here, then go through how to run everything.
 
