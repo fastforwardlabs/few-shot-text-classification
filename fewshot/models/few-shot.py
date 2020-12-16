@@ -39,17 +39,19 @@ class BayesianMSELoss(torch.nn.Module):
         return err1 + lam * err2
 
 
-def prepare_dataloader(dataset, Z, batch_size=50):
-    """
-    When training the Wmap matrix, the input requires 
-  
-    * that both the example embeddings and the label embeddings have already 
-      been transformed with a Zmap
-    * that these tensors are wrapped in PyTorch DataLoader abstraction
+def prepare_dataloader(dataset, Zmap=None, batch_size=50):
+    """ Convert a Dataset object to a PyTorch DataLoader object for 
+        training Wmap
+
+        Include Zmap if Wmap should be trained on SBERT*Zmap representations
     """
     example_embeddings = dataset.embeddings[:-len(dataset.categories)]
-    X_train = torch.mm(example_embeddings, Z)
-    y_train = torch.mm(dataset.label_embeddings, Z)
+    if Zmap is not None:
+      X_train = torch.mm(example_embeddings, Zmap)
+      y_train = torch.mm(dataset.label_embeddings, Zmap)
+    else:
+      X_train = example_embeddings
+      y_train = dataset.label_embeddings
 
     tensor_dataset = TensorDataset(X_train, y_train)
     data_loader = DataLoader(tensor_dataset, shuffle=True, batch_size=batch_size)

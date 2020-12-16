@@ -1,14 +1,6 @@
-import os
-import attr
-from typing import List
-
 import pandas as pd
-from datasets import load_dataset
+from datasets import load_dataset as load_HF_dataset
 
-from fewshot.embeddings.transformer_embeddings import (
-    load_transformer_model_and_tokenizer,
-    get_transformer_embeddings,
-)
 from fewshot.utils import (
     to_list,
     to_tensor,
@@ -17,32 +9,11 @@ from fewshot.utils import (
     fewshot_filename
 )
 
+from fewshot.data.utils import Dataset
+
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
-
-
-@attr.s
-class Dataset(object):
-    # These are the text (news articles, product descriptions, etc.)
-    examples: List[str] = attr.ib()
-    # Labels associated with each example
-    # TODO: at some point this has to change because in a real application labels may
-    # not exist or there might be fewer labels than examples (need to keep track)
-    labels: List[int] = attr.ib()
-    # Categories that correspond to the number of unique Labels
-    categories: List[str] = attr.ib()
-    # embeddings for each example and each category
-    embeddings = attr.ib()
-
-    @embeddings.default
-    def _get_embeddings(self, model_name_or_path=None):
-        # Load the model and the tokenizer
-        # TODO: need to be able to pass a specific model rather than using default
-        model, tokenizer = load_transformer_model_and_tokenizer()
-        return get_transformer_embeddings(
-            self.examples + self.categories, model, tokenizer
-        )
 
 
 def _prepare_text(df, text_column):
@@ -117,9 +88,8 @@ def _load_reddit_dataset(datadir: str, categories="curated"):
 
 def _load_agnews_dataset(split: str = "test"):
     """Load AG News dataset from dataset library."""
-    dataset = load_dataset("ag_news", split=split)
+    dataset = load_HF_dataset("ag_news", split=split)
     df = pd.DataFrame(dataset)
-    # categories = dataset["test"].features["label"].names
     df["category"] = df["label"].map(
         {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
     )
@@ -176,24 +146,3 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     pickle_save(dataset, filename)
     return dataset
 
-
-def expand_labels(dataset):
-    """ 
-    When performing supervised learning (e.g. few-shot), we will need a label embedding for 
-    each example in the dataset. Most datasets only have a handful of labels (4-10).
-    Passing these repeatedly through SBERT for each example is slow, repetitive and
-    unnecessarily expensive. 
-
-    Instead we'll restructure the dataset attributes. Originally instantiated, each label 
-    has already been passed through SBERT and is stored in dataset.embeddings 
-    as the last N items in the list. These are used to build out a full label embedding tensor.
-    Additionally, dataset.embeddings is repurposed to contain ONLY example embeddings 
-    rather than example AND label embeddings
-    """
-
-    num_labels = len(dataset.categories)
-    label_embeddings = to_list(dataset.embeddings[-num_labels:])
-
-    dataset.label_embeddings = to_tensor([label_embeddings[label] for label in dataset.labels])
-    #dataset.embeddings = dataset.embeddings[:-num_labels]
-    return dataset
