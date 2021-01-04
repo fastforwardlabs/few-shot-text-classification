@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from datasets import load_dataset as load_HF_dataset
 
@@ -124,6 +125,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     # Check for cached data.
     print("Checking for cached data...")
     dataset_name = dataset_name.lower()
+    print(dataset_name)
     filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
     if os.path.exists(filename):
         return pickle_load(filename)

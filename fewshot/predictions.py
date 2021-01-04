@@ -7,7 +7,6 @@ import torch
 from torch.nn import functional as F
 
 from fewshot.utils import to_list
-from fewshot.metrics import compute_predictions_projection
 
 PredictionClass = Any
 

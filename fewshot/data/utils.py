@@ -1,6 +1,8 @@
 import attr
 from typing import List
 
+import pandas as pd
+
 from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
     get_transformer_embeddings

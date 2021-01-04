@@ -14,7 +14,7 @@ from fewshot.embeddings.transformer_embeddings import (
     get_transformer_embeddings,
 )
 
-from fewshot.models.on-the-fly import OLS_with_l2_regularization
+from fewshot.models.on_the_fly import OLS_with_l2_regularization
 
 from fewshot.metrics import simple_accuracy, simple_topk_accuracy
 
