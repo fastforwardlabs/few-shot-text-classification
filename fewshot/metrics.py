@@ -1,7 +1,9 @@
 import itertools
 from typing import Iterator, List, Optional
 
-from fewshot.predictions import Prediction
+import torch 
+
+from fewshot.predictions import Prediction, compute_predictions_projection
 
 MISSING_VALUE = "***"
 
@@ -54,3 +56,24 @@ def simple_topk_accuracy(ground_truth, predictions: List[Prediction]):
     """Computes accuracy, the portion of points for which one of the top-k
     (closest field on predictions) predicted labels matches the true label."""
     return _accuracy_impl(ground_truth, predictions)
+  
+  
+#TODO: find a better place for this? Combine metrics.py & predictions.py?
+def predict_and_score_Wmap(dataset, Wmap, Zmap=None, return_predictions=False):
+  """ Compute predictions and score for a given Dataset object, Wmap, 
+      and (optionally), Zmap"""
+  num_categories = len(dataset.categories)
+  X = dataset.embeddings[:-num_categories]
+  Y = dataset.embeddings[-num_categories:]
+
+  if Zmap is not None:
+    X = torch.mm(dataset.embeddings[:-num_categories], Zmap)
+    Y = torch.mm(dataset.embeddings[-num_categories:], Zmap)
+
+  predictions = compute_predictions_projection(X, Y, Wmap)
+
+  # compute the score for the predictions
+  score = simple_accuracy(dataset.labels, predictions)
+  if return_predictions:
+    return score, predictions
+  return score 

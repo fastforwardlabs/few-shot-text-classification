@@ -8,6 +8,8 @@ from fewshot.embeddings.transformer_embeddings import (
     get_transformer_embeddings
 )
 
+from fewshot.utils import to_list, to_tensor
+
 
 @attr.s
 class Dataset(object):

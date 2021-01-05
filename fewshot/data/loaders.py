@@ -97,12 +97,16 @@ def _load_agnews_dataset(split: str = "test"):
     return df
 
 
-def _create_dataset_from_df(df, text_column: str):
-    return Dataset(
+def _create_dataset_from_df(df, text_column: str, filename: str = None):
+    dataset = Dataset(
         examples=df[text_column].tolist(),
         labels=df.label.tolist(),
         categories=_prepare_category_names(df),
     )
+
+    if filename is not None:
+        pickle_save(dataset, filename)
+    return dataset
 
 
 def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
@@ -125,7 +129,6 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     # Check for cached data.
     print("Checking for cached data...")
     dataset_name = dataset_name.lower()
-    print(dataset_name)
     filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
     if os.path.exists(filename):
         return pickle_load(filename)
@@ -142,9 +145,9 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
         df = _load_reddit_dataset(datadir)
         text_column, category_column = "summary", "category"
     else:
-        raise ValueError(f"Unexpected dataset name: {dataset_name}")
+        raise ValueError(f"Unexpected dataset name: {dataset_name}.\n \
+                          Please choose from: agnews, amazon, or reddit")
 
-    dataset = _create_dataset_from_df(df, text_column)
-    pickle_save(dataset, filename)
+    dataset = _create_dataset_from_df(df, text_column, filename=filename)
     return dataset
 

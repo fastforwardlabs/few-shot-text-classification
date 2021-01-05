@@ -16,14 +16,16 @@ from fewshot.data.utils import (
     expand_labels
 )
 
-from fewshot.predictions import predict_and_score_Wmap
+from fewshot.metrics import predict_and_score_Wmap
 
 from fewshot.utils import (
     fewshot_filename, 
     torch_load,
+    torch_save,
+    pickle_load
 )
 
-from fewshot.models.few-shot import (
+from fewshot.models.few_shot import (
     FewShotLinearRegression, 
     BayesianMSELoss,
     prepare_dataloader,
@@ -44,14 +46,20 @@ df_news_train = _load_agnews_dataset(split="train")
 df_news_train_subset = select_subsample(df_news_train, sample_size=100)
 
 # convert that DataFrame to a Dataset
-news_train_subset = _create_dataset_from_df(df_news_train_subset, text_column='text')
+ds_filename = f"{DATADIR}/{DATASET_NAME}_train_dataset.pkl"
+if os.path.exists(ds_filename):
+    news_train_subset = pickle_load(ds_filename)
+else:
+    news_train_subset = _create_dataset_from_df(df_news_train_subset, 
+                                                text_column='text', 
+                                                filename=ds_filename)
 # this is required due the particular implementation details of our Dataset class
 news_train_subset = expand_labels(news_train_subset)
 
 ## Load Zmap
 # We'll proceed under the assumption that the Zmap we learned during on-the-fly 
 # classification provides the best representations for our text and labels.  
-Zmap = torch.load("data/Zmaps/Zmap_20k_w2v_words_alpha0.pt")
+Zmap = torch.load("data/maps/Zmap_20000_words.pt")
 
 ## Prepare a Torch DataLoader for training
 # convert the properly formatted training Dataset into a PyTorch DataLoader
@@ -86,3 +94,5 @@ score = predict_and_score_Wmap(test_dataset, Wmap, Zmap=Zmap, return_predictions
 print(score)
 
 ## Success! 
+# Let's save this Wmap
+torch_save(Wmap, f"data/maps/Wmap_{DATASET_NAME}.pt")

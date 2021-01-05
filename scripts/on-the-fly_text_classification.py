@@ -22,6 +22,7 @@ from fewshot.predictions import compute_predictions, compute_predictions_project
 
 from fewshot.utils import (
     torch_load,
+    torch_save,
     to_tensor,
     fewshot_filename,
 )
@@ -81,14 +82,10 @@ vocab_w2v_embeddings, vocab = get_topk_w2v_vectors(w2v_model, k=VOCAB_SIZE)
 vocab_w2v_embeddings = to_tensor(vocab_w2v_embeddings)
 
 # Passing 20k words through SBERT can be time-consuming, even with a GPU. 
-# Fortunately, we've already performed this analysis and include precomputed embeddings.
+# Fortunately, we've already performed this step and include precomputed embeddings.
 vocab_sbert_filename = fewshot_filename(
     W2VDIR, f"sbert_embeddings_for_{VOCAB_SIZE}_words.pt"
 )
-print(vocab_sbert_filename)
-
-import pdb
-pdb.set_trace()
 
 if os.path.exists(vocab_sbert_filename):
     cached_data = torch_load(vocab_sbert_filename)
@@ -113,4 +110,8 @@ score3 = simple_topk_accuracy(dataset.labels, predictions)
 print(f"Score using projection matrix with top {VOCAB_SIZE} w2v words: {score}")
 print(f"Score considering the top {TOPK} best labels: {score3}")
 
-## Our overall classification rate improved! And we didn't even need trianing data.
+## Our overall classification rate improved! 
+# And we didn't even need trianing data.
+
+# Let's save this Zmap
+torch_save(Zmap, f"data/Zmaps/Zmap_{VOCAB_SIZE}_words.pt")
