@@ -85,6 +85,11 @@ vocab_w2v_embeddings = to_tensor(vocab_w2v_embeddings)
 vocab_sbert_filename = fewshot_filename(
     W2VDIR, f"sbert_embeddings_for_{VOCAB_SIZE}_words.pt"
 )
+print(vocab_sbert_filename)
+
+import pdb
+pdb.set_trace()
+
 if os.path.exists(vocab_sbert_filename):
     cached_data = torch_load(vocab_sbert_filename)
     vocab_sbert_embeddings = cached_data["embeddings"]

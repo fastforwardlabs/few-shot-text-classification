@@ -1,5 +1,5 @@
 import torch
-import torch.functional as F 
+import torch.nn.functional as F 
 
 
 def OLS_with_l2_regularization(X, Y, alpha=0):
