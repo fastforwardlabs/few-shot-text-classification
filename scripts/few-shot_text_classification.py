@@ -1,6 +1,6 @@
 # Load some data and perform few-shot text classification using the
 # Latent Embeddings approach
-
+import os
 import torch
 
 from tqdm.notebook import tqdm, tnrange
@@ -16,7 +16,7 @@ from fewshot.data.utils import (
     expand_labels
 )
 
-from fewshot.metrics import predict_and_score_Wmap
+from fewshot.eval import predict_and_score
 
 from fewshot.utils import (
     fewshot_filename, 
@@ -68,7 +68,8 @@ Zmap = torch.load("data/maps/Zmap_20000_words.pt")
 data_loader = prepare_dataloader(news_train_subset, Zmap)
 
 # instantiate the model
-device = "cuda" if torch.cuda.is_available() else "cpu"
+#device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
 learning_rate = 0.1
 lambda_regularization = 500
 num_epochs = 1000
@@ -90,7 +91,7 @@ Wmap = fewshot_model.linear.weight.detach().cpu()
 # load the test set
 test_dataset = load_or_cache_data(DATADIR, DATASET_NAME)
 
-score = predict_and_score_Wmap(test_dataset, Wmap, Zmap=Zmap, return_predictions=False)
+score = predict_and_score(test_dataset, linear_maps=[Zmap, Wmap], return_predictions=False)
 print(score)
 
 ## Success! 

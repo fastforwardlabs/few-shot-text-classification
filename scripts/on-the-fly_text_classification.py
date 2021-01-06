@@ -16,9 +16,9 @@ from fewshot.embeddings.transformer_embeddings import (
 
 from fewshot.models.on_the_fly import OLS_with_l2_regularization
 
-from fewshot.metrics import simple_accuracy, simple_topk_accuracy
+from fewshot.eval import predict_and_score, simple_topk_accuracy
 
-from fewshot.predictions import compute_predictions, compute_predictions_projection
+#from fewshot.predictions import compute_predictions, compute_predictions_projection
 
 from fewshot.utils import (
     torch_load,
@@ -41,18 +41,8 @@ dataset = load_or_cache_data(DATADIR, DATASET_NAME)
 # `dataset` is a specialized object containing the original text, the 
 # SentenceBERT embedding, and the label for each example in the test set. 
 
-# `dataset.embeddings` contains the SBERT embeddings for every example as well 
-# for the label names. 
-# We separate the example embeddings from the label embeddings for clarity
-num_categories = len(dataset.categories)
-sbert_emb_examples = dataset.embeddings[:-num_categories]
-sbert_emb_labels = dataset.embeddings[-num_categories:]
+score, predictions = predict_and_score(dataset, return_predictions=True)
 
-### Compute predictions based on cosine similarity
-predictions = compute_predictions(sbert_emb_examples, sbert_emb_labels, k=TOPK)
-
-### Because our data is labeled, we can score the results!
-score = simple_accuracy(dataset.labels, predictions)
 score_intop3 = simple_topk_accuracy(dataset.labels, predictions)
 print(f"Score: {score}")
 print(f"Score considering the top {TOPK} best labels: {score_intop3}")
@@ -101,17 +91,13 @@ Zmap = OLS_with_l2_regularization(
     vocab_sbert_embeddings, vocab_w2v_embeddings
 )
 
-# Compute new predictions after transforming SBERT embeddings with Zmap
-predictions = compute_predictions_projection(
-    sbert_emb_examples, sbert_emb_labels, Zmap, k=3
-)
-score = simple_accuracy(dataset.labels, predictions)
+score, predictions = predict_and_score(dataset, linear_maps=[Zmap], return_predictions=True)
 score3 = simple_topk_accuracy(dataset.labels, predictions)
 print(f"Score using projection matrix with top {VOCAB_SIZE} w2v words: {score}")
 print(f"Score considering the top {TOPK} best labels: {score3}")
 
 ## Our overall classification rate improved! 
-# And we didn't even need trianing data.
+# And we didn't even need training data.
 
 # Let's save this Zmap
 torch_save(Zmap, f"data/Zmaps/Zmap_{VOCAB_SIZE}_words.pt")

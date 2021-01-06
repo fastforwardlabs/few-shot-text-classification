@@ -1,5 +1,5 @@
 """ Contains fuctions to compute predictions with or without projections,
-    and compute the accuracy of those predictions given grount truth labels.
+    and compute the accuracy of those predictions given ground truth labels.
 
     These capabilities are contained in two wrapper functions: 
         predict_and_score_Zmap
@@ -8,7 +8,7 @@
 
 import itertools
 import math
-from typing import Any, Callable, List, Optional, Iterator
+from typing import Any, Callable, List, Optional, Iterator, Tuple
 
 import attr
 import pandas as pd
@@ -16,6 +16,7 @@ import torch
 from torch.nn import functional as F
 
 from fewshot.utils import to_list
+from fewshot.data.loaders import Dataset
 
 MISSING_VALUE = "***"
 PredictionClass = Any
@@ -40,30 +41,47 @@ class Prediction(object):
         for s1, s2 in zip(self.scores, other.scores):
             if not math.isclose(s1, s2, abs_tol=1e-5):
                 return False
-        return (self.closest==other.closest and self.best==other.best)
+        return self.closest == other.closest and self.best == other.best
 
     def __ne__(self, other: Any) -> bool:
         return not (self == other)
 
     def to_df(self):
-        return pd.DataFrame(
-            data={"closest": self.closest, "scores": self.scores}
-        )
+        return pd.DataFrame(data={"closest": self.closest, "scores": self.scores})
 
 
 def closest_label(sentence_representation, label_representations):
-    similarities = F.cosine_similarity(
-        sentence_representation, label_representations
-    )
+    similarities = F.cosine_similarity(sentence_representation, label_representations)
     closest = similarities.argsort(descending=True)
     return similarities, closest
 
 
+def _compute_linear_transformations(
+    dataset: Dataset, linear_maps: Optional[List[torch.Tensor]] = None
+) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    if linear_maps is None:
+        linear_maps = []
+
+    # `dataset.embeddings` contains the SBERT embeddings for every example as well
+    # for the label names.
+    # We separate the example embeddings from the label embeddings for clarity
+    num_categories = len(dataset.categories)
+    X = dataset.embeddings[:-num_categories]
+    Y = dataset.embeddings[-num_categories:]
+
+    for linear_map in linear_maps:
+        X = torch.mm(X, linear_map)
+        Y = torch.mm(Y, linear_map)
+
+    return X, Y
+
+
 def compute_predictions(
-        example_embeddings,
-        label_embeddings,
-        k: int = 3,
-        transformation: Optional[Callable] = None,
+    example_embeddings,
+    label_embeddings,
+    k: int = 3,
+    transformation: Optional[Callable] = None,
 ) -> List[Prediction]:
     """Make predictions for each of the example embeddings.
 
@@ -87,9 +105,7 @@ def compute_predictions(
         transformation = lambda x: x
 
     if len(example_embeddings.size()) == 1:
-        example_embeddings = example_embeddings.reshape(
-            (1, len(example_embeddings))
-        )
+        example_embeddings = example_embeddings.reshape((1, len(example_embeddings)))
 
     norm_example_embeddings = F.normalize(example_embeddings, p=2, dim=1)
     norm_label_embeddings = F.normalize(label_embeddings, p=2, dim=1)
@@ -113,34 +129,9 @@ def compute_predictions(
     return predictions
 
 
-def compute_predictions_projection(
-        example_embeddings, label_embeddings, projection_matrix, k: int = 3
-) -> List[Prediction]:
-    """Make predictions for each of the example embeddings.
-
-    The function compares the embedding of the example to each of the
-    label_embeddings.  The one that it is closest to is the predicted label.
-
-    Args:
-        example_embeddings: The embeddings of the data that we want to make
-            predictions for.
-        label_embeddings: The embeddings of the category labels.
-        projection_matrix: A matrix used to project the embeddings of both the
-            examples and the labels.
-        k: The closest field of the returned Prediction class will contain the k
-            closest (best) predictions.
-
-    Returns:
-        A list of Prediction objects, one for each passed example.
-    """
-    projection = lambda x: torch.matmul(x, projection_matrix)
-    return compute_predictions(
-        example_embeddings, label_embeddings, k, projection
-    )
-
-
-def _accuracy_impl(ground_truth,
-                   predictions: List[Prediction], k: Optional[int] = None):
+def _accuracy_impl(
+    ground_truth, predictions: List[Prediction], k: Optional[int] = None
+):
     """Computes accuracy, the portion of points for which one of the top-k
     predicted labels matches the true label.
 
@@ -158,8 +149,9 @@ def _accuracy_impl(ground_truth,
         The percent (portion * 100) of the labels that are correctly predicted.
     """
     matched, total = 0, 0
-    for truth, pred in itertools.zip_longest(ground_truth, predictions,
-                                             fillvalue=MISSING_VALUE):
+    for truth, pred in itertools.zip_longest(
+        ground_truth, predictions, fillvalue=MISSING_VALUE
+    ):
         if truth == MISSING_VALUE or pred == MISSING_VALUE:
             # The shorter list has run out.
             raise ValueError(f"Accuracy length mismatch")
@@ -189,31 +181,17 @@ def simple_topk_accuracy(ground_truth, predictions: List[Prediction]):
     return _accuracy_impl(ground_truth, predictions)
 
 
-#TODO: find a better place for this? Combine metrics.py & predictions.py?
-def predict_and_score_Wmap(dataset, Wmap, Zmap=None, return_predictions=False):
-  """ Compute predictions and score for a given Dataset object, Wmap, 
+def predict_and_score(dataset, linear_maps=None, return_predictions=False):
+    """ Compute predictions and score for a given Dataset object, Wmap, 
       and (optionally), Zmap"""
-  num_categories = len(dataset.categories)
-  X = dataset.embeddings[:-num_categories]
-  Y = dataset.embeddings[-num_categories:]
 
-  if Zmap is not None:
-    X = torch.mm(dataset.embeddings[:-num_categories], Zmap)
-    Y = torch.mm(dataset.embeddings[-num_categories:], Zmap)
+    example_features, label_features = _compute_linear_transformations(dataset, linear_maps)
+    
+    predictions = compute_predictions(example_features, label_features)
 
-  predictions = compute_predictions_projection(X, Y, Wmap)
+    # compute the score for the predictions
+    score = simple_accuracy(dataset.labels, predictions)
+    if return_predictions:
+        return score, predictions
+    return score
 
-  # compute the score for the predictions
-  score = simple_accuracy(dataset.labels, predictions)
-  if return_predictions:
-    return score, predictions
-  return score 
-  
-
-def predict_and_score_Zmap(dataset, Zmap, return_predictions=False):
-  """ Compute predictions and score for a given Dataset object and Zmap"""
-  # Computing predictions requires projecting your data with a Zmap and/or Wmap
-  # predict_and_score_Wmap accounts for any combination of projections
-  # When Zmap=None and Wmap=Zmap, you are actually just projecting Zmap onto 
-  # your data before computing predictions.
-  return predict_and_score_Wmap(dataset, Wmap=Zmap, Zmap=None, return_predictions=return_predictions)
