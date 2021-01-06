@@ -56,8 +56,8 @@ def simple_topk_accuracy(ground_truth, predictions: List[Prediction]):
     """Computes accuracy, the portion of points for which one of the top-k
     (closest field on predictions) predicted labels matches the true label."""
     return _accuracy_impl(ground_truth, predictions)
-  
-  
+
+
 #TODO: find a better place for this? Combine metrics.py & predictions.py?
 def predict_and_score_Wmap(dataset, Wmap, Zmap=None, return_predictions=False):
   """ Compute predictions and score for a given Dataset object, Wmap, 
@@ -77,3 +77,12 @@ def predict_and_score_Wmap(dataset, Wmap, Zmap=None, return_predictions=False):
   if return_predictions:
     return score, predictions
   return score 
+  
+
+def predict_and_score_Zmap(dataset, Zmap, return_predictions=False):
+  """ Compute predictions and score for a given Dataset object and Zmap"""
+  # Computing predictions requires projecting your data with a Zmap and/or Wmap
+  # predict_and_score_Wmap accounts for any combination of projections
+  # When Zmap=None and Wmap=Zmap, you are actually just projecting Zmap onto 
+  # your data before computing predictions.
+  return predict_and_score_Wmap(dataset, Wmap=Zmap, Zmap=None, return_predictions=return_predictions)
