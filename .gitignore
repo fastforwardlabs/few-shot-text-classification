@@ -129,7 +129,10 @@ dmypy.json
 .pyre/
 
 # Too big to upload
-data/*
+my_data/*
 
 # IDE config
 .idea/*
+
+# macOS 
+*.DS_Store
