@@ -13,12 +13,12 @@ from gensim.models.keyedvectors import KeyedVectors
 
 from fewshot.utils import fewshot_filename, create_path
 
-
+W2VDIR = "data/w2v/"
 ORIGINAL_W2V = "GoogleNews-vectors-negative300.bin.gz"
 W2V_SMALL = "GoogleNews-vectors-negative300_top500k.kv"
 
 
-def load_word_vector_model(small=True, cache_dir="."):
+def load_word_vector_model(small=True, cache_dir=W2VDIR):
     # TODO: be able to load GloVe or Word2Vec embedding model
     # TODO: make a smaller version that only has, say, top 100k words
     if small:
@@ -27,21 +27,22 @@ def load_word_vector_model(small=True, cache_dir="."):
         filename = fewshot_filename(cache_dir, ORIGINAL_W2V)
 
     if not os.path.exists(filename):
-        if not os.path.exists(fewshot_filename(cache_dir, ORIGINAL_W2V)):
+        original_filename = fewshot_filename(cache_dir, ORIGINAL_W2V)
+        if not os.path.exists(original_filename):
             print("No Word2Vec vectors not found. Downloading...")
             url = "https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz"
             r = requests.get(url, allow_redirects=True)
-            create_path(filename)
-            open(filename, "wb").write(r.content)
+            create_path(original_filename)
+            open(original_filename, "wb").write(r.content)
 
         if small:
-            create_small_w2v_model(cache_dir)
+            create_small_w2v_model(cache_dir=cache_dir)
 
     model = KeyedVectors.load_word2vec_format(filename, binary=True)
     return model
 
 
-def create_small_w2v_model(num_most_common_words=500000, cache_dir=None):
+def create_small_w2v_model(num_most_common_words=500000, cache_dir=W2VDIR):
     orig_model = load_word_vector_model(small=False, cache_dir=cache_dir)
     words = orig_model.index2entity[:num_most_common_words]
 

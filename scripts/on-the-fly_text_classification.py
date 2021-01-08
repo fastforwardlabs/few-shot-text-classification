@@ -67,6 +67,8 @@ print()
 w2v_model = load_word_vector_model(small=True, cache_dir=W2VDIR)
 VOCAB_SIZE = 20000
 
+import pdb
+pdb.set_trace()
 # We found that using a vocabulary size of 20,000 words is good for most applications
 vocab_w2v_embeddings, vocab = get_topk_w2v_vectors(w2v_model, k=VOCAB_SIZE)
 vocab_w2v_embeddings = to_tensor(vocab_w2v_embeddings)
