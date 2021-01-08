@@ -6,6 +6,7 @@ import numpy as np
 import glob
 import re
 import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -13,7 +14,7 @@ import torch
 from transformers import AutoModel, AutoTokenizer
 
 from fewshot.embeddings import transformer_embeddings as temb
-from fewshot.predictions import compute_predictions, compute_predictions_projection
+from fewshot.eval import compute_predictions
 from fewshot.data.loaders import load_or_cache_data
 from fewshot.utils import pickle_load, torch_load, fewshot_filename
 
@@ -33,7 +34,7 @@ def load_examples(data_name="agnews"):
         return
 
     dataset = load_or_cache_data(DATADIR + "/" + data_name, data_name)
-
+    
     if data_name == "agnews":
         # cherry-picked example indexes
         #example_idx = [142, 811, 1201, 1440, 1767, 1788]
@@ -49,20 +50,21 @@ def load_examples(data_name="agnews"):
         ]
 
     examples = {}
+    title_to_idx = {}
     for i, idx in enumerate(example_idx):
         text = dataset.examples[idx]
-        #title = " ".join(text.split()[:5]) + "..."
         title = titles[i]
         examples[title] = text
+        title_to_idx[title] = idx
 
-    return examples, dataset.categories
+    return examples, title_to_idx, dataset
 
 
 @st.cache(allow_output_mutation=True)
-def load_mapping_matrices():
-    zmap_basic = torch_load(fewshot_filename(DATADIR+"/Zmaps", "Zmap_20k_w2v_words_alpha0.pt"))
-    zmap_optimized = torch_load(fewshot_filename(DATADIR+"/Zmaps", "Zmap_20k_w2v_words_alpha10_news.pt"))
-    wmap = torch_load(fewshot_filename(DATADIR+"/Wmaps", "Wmap_agnews_lr0.1_lam500_500expercat.pt"))
+def load_linear_maps():
+    zmap_basic = torch_load(fewshot_filename(DATADIR+"/maps", "Zmap_20k_w2v_words_alpha0.pt"))
+    zmap_optimized = torch_load(fewshot_filename(DATADIR+"/maps", "Zmap_20k_w2v_words_alpha10_news.pt"))
+    wmap = torch_load(fewshot_filename(DATADIR+"/maps", "Wmap_agnews_lr0.1_lam500_500expercat.pt"))
 
     MAPPINGS = {
         'Zmap (standard)': zmap_basic,
@@ -92,8 +94,16 @@ def get_transformer_embeddings(data):
     return embeddings
 
 
+def compute_linear_transformations(X, linear_maps=None):
+    if linear_maps is None:
+        linear_maps = []
+
+    for linear_map in linear_maps:
+        X = torch.mm(X, linear_map)
+    return X
+
+
 def bar_chart(df):
-    print("in bar chart")
     print(df)
     fig = px.bar(
         df,
@@ -101,6 +111,7 @@ def bar_chart(df):
         y="labels",
         hover_data=["scores", "labels"],
         labels={"scores": "Cosine similarity", "labels": "Label"},
+        title="Cosine similarity scores for each possible label name"
     )
     fig.update_layout(
         yaxis={"categoryorder": "total ascending", "title": "",},
@@ -166,9 +177,12 @@ def plot_umap(umap_embeddings, dataset, example_idx=None, predictions=None):
 
     plt.axis("off")
 
-EXAMPLES, LABELS = load_examples("agnews")
+    st.pyplot(fig=fig)
 
-MAPPINGS = load_mapping_matrices()
+EXAMPLES, title_to_idx, dataset = load_examples("agnews")
+LABELS = dataset.categories
+
+MAPPINGS = load_linear_maps()
 
 ### ------- SIDEBAR ------- ###
 image = Image.open(fewshot_filename(IMAGEDIR, "cloudera-fast-forward.png"))
@@ -224,36 +238,55 @@ label_list = label_input.split(", ")
 # just because the list of labels might have changed
 data = [text_input] + label_list
 
+# Load the SentenceBERT model and tokenizer
 model, tokenizer = load_transformer_model_and_tokenizer()
+
+# Compute embeddings for both the text and each of the labels 
 embeddings = get_transformer_embeddings(data)
 
-### ------- COMPUTE PREDICTIONS ------- ###
-if projection_selection:
-    if "Wmap" in projection_selection:
-        # If applying a Wmap, first transform text embeddings and label embeddings 
-        # with a standard Zmap
-        text_emb = torch.mm(
-            embeddings[0].reshape((1, len(embeddings[0]))),
-            MAPPINGS['Zmap (standard)'],
-        )
-        label_emb = torch.mm(embeddings[1:], MAPPINGS['Zmap (standard)'])
-    else:
-        # Otherwise use just the SBERT embeddings (without any transformation)
-        text_emb = embeddings[0]
-        label_emb = embeddings[1:]
 
-    # compute predictions using the Wmap
-    predictions = compute_predictions_projection(
-        text_emb, label_emb, MAPPINGS[projection_selection], k=len(data) - 1
-    )
+example_embedding = embeddings[0].unsqueeze(0)
+label_embeddings = embeddings[1:]
+
+# Collect all necessary linear maps, depending on user selection
+# If none, linear_maps is an empty list. 
+# If Wmap is chosen, linear_maps is a list containing the standard Zmap  
+# which must be applied to the SBERT embeddings before applying the Wmap. 
+# If a Zmap is selected, linear_maps contains only that choosen Zmap
+if projection_selection is not None:
+    linear_maps = [MAPPINGS[projection_selection]]
+
+    if "Wmap" in projection_selection:
+        linear_maps = [MAPPINGS['Zmap (standard)']] + linear_maps
+
     umap_embeddings = pickle_load(ZMAPUMAP)
 else:
-    ### Compute predictions based on cosine similarity
-    predictions = compute_predictions(embeddings[:2], embeddings[1:], k=len(data) - 1)
+    linear_maps = []
     umap_embeddings = pickle_load(BASEUMAP)
 
+# Apply the selected linear mappings to generate features for classification
+example_features = compute_linear_transformations(example_embedding, linear_maps)
+label_features = compute_linear_transformations(label_embeddings, linear_maps)
+
+# Predictions are computed with cosine similarity
+predictions = compute_predictions(example_features, label_features, k=len(label_list))
+
+# Cast the predictions as a DataFrame for easier plotting
 df = predictions[0].to_df()
 df["labels"] = [label_list[c] for c in df.closest]
-bar_chart(df)
 
-#plot_umap(umap_embeddings, )
+# Plot the results as a bar chart
+bar_chart(df)
+st.write("The label name with the largest score is likely to be the most similar to the news article, \
+    so we assign this label name to the news article when performing classification.")
+
+st.markdown("### Visualizing text embeddings")
+st.write("Using the UMAP algorithm, we plot each news article in the AG News test set as a small \
+    point color-coded by its ground truth label, along with the four label names themselves. \
+    We can see how the articles cluster differently depending on what type of embeddings are used in \
+    the UMAP algorithm. When using only SentenceBERT embeddings (Classifier Enhancement is None), \
+    there isn't much separation between groups and the label names don't align well with their corresponding news articles. \
+    This improves when we apply the standard Zmap and demonstrates that this simple linear \
+    transformation can make a significant difference in classification, even if we don't have any training data!")
+
+plot_umap(umap_embeddings, dataset, example_idx=title_to_idx[example])
