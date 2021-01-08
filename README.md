@@ -26,24 +26,24 @@ There are also `images` and  `tests` directories that are unimportant and can be
 ```
 fewshot
 ├── data
-│   └── loaders.py
+│   ├── loaders.py
+│   └── utils.py
 ├── embeddings
 │    ├── transformer_embeddings.py
 │    └── word_embeddings.py
 ├── models
-│    ├── few-shot.py
-│    └── on-the-fly.py
-├── metrics.py
-├── predictions.py
+│    ├── few_shot.py
+│    └── on_the_fly.py
+├── eval.py
 └── utils.py
 ```
 The `data/loaders.py` is used in all scripts and notebooks, containing code that returns a specialized `Dataset` object that makes it easier to handle the original text, embeddings, and labels simultaneously.  
 
 The latent text embedding method relies on first embedding text with Sentence-BERT before performing any other steps. This code is found under `embeddings/transformer_embeddings.py`. More sophisticated methods incorporate word embeddings to augment the Sentence-BERT embeddings, and this code is under `embeddings/word_embeddings.py`. 
 
-There are two regimes in which we perform text classification and we include a model for each. `models/few-shot.py` contains code to train a model that incorporates _some_ labeled data, while `models/on-the-fly.py` computes a model that performs classification with _no labeled data at all_. 
+There are two regimes in which we perform text classification and we include a model for each. `models/few_shot.py` contains code to train a model that incorporates _some_ labeled data, while `models/on_the_fly.py` computes a model that performs classification with _no labeled data at all_. 
 
-We also provide helper functions for generating predictions and computing metrics such as basic accuracy. `utils.py` contains additional helper functions for I/O and serializing data.  
+We also provide helper functions for generating predictions and computing metrics such as basic accuracy in `eval.py`. `utils.py` contains additional helper functions for I/O and serializing data.  
 
 ### `scripts` 
 
@@ -51,19 +51,13 @@ We also provide helper functions for generating predictions and computing metric
 scripts
 ├── few-shot_text_classification.py
 ├── on-the-fly_text_classification.py
-└── visualize_text_examples.py
 ```
 These scripts perform basic text classification and data visualization for the various classification regimes. 
 
 ### `notebooks`
 ```
 notebooks
-├── ClusterAmazonProducts.ipynb
 ├── CreatingRedditDataset.ipynb
-├── ExaminingAGNewsExamples.ipynb
-├── ExploreAmazonProuctsData.ipynb
-├── LatentEmbeddingApproach.ipynb
-├── PlayingWithProjections.ipynb
 ├── Wmap_Experiments.ipynb
 └── Zmap_Experiments.ipynb
 ```
@@ -133,4 +127,4 @@ python3 scripts/on-the-fly_text_classification.py
 python3 scripts/few-shot_text_classification.py
 ```
 
-These scripts will generate several models (either known as `Zmaps` or `Wmaps`), which will be saved to the `data` directory under appropriately-named subdirectories. These models are used in our prototype application and we have thus included pre-learned versions already. 
+These scripts will generate several models (known either as `Zmaps` or `Wmaps`), which will be saved to the `data` directory under the `maps` subdirectory. These models are used in our prototype application and we have thus included pre-learned versions already. 

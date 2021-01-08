@@ -16,6 +16,7 @@ from fewshot.data.utils import Dataset
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
 
+
 def _prepare_text(df, text_column):
     text = df[text_column].tolist()
     categories = df["category"].unique().tolist()
