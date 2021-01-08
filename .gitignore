@@ -130,6 +130,7 @@ dmypy.json
 
 # Too big to upload
 my_data/*
+old_notebooks/*
 
 # IDE config
 .idea/*
