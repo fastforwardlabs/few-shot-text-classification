@@ -59,7 +59,7 @@ news_train_subset = expand_labels(news_train_subset)
 ## Load Zmap
 # We'll proceed under the assumption that the Zmap we learned during on-the-fly 
 # classification provides the best representations for our text and labels.  
-Zmap = torch.load("data/maps/Zmap_20000_words.pt")
+Zmap = torch.load(fewshot_filename("data/maps/Zmap_20000_words.pt"))
 
 ## Prepare a Torch DataLoader for training
 # convert the properly formatted training Dataset into a PyTorch DataLoader
@@ -96,4 +96,4 @@ print(score)
 
 ## Success! 
 # Let's save this Wmap
-torch_save(Wmap, f"data/maps/Wmap_{DATASET_NAME}.pt")
+torch_save(Wmap, fewshot_filename(f"data/maps/Wmap_{DATASET_NAME}.pt"))

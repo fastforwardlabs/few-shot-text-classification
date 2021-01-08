@@ -35,13 +35,17 @@ def load_word_vector_model(small=True, cache_dir="."):
             open(filename, "wb").write(r.content)
 
         if small:
-            create_small_w2v_model(cache_dir)
+            create_small_w2v_model(cache_dir=cache_dir)
 
-    model = KeyedVectors.load_word2vec_format(filename, binary=True)
+    if small:
+        model = KeyedVectors.load_word2vec_format(filename, binary=False)
+    else:
+        model = KeyedVectors.load_word2vec_format(filename, binary=True, unicode_errors='ignore')
+
     return model
 
 
-def create_small_w2v_model(num_most_common_words=500000, cache_dir=None):
+def create_small_w2v_model(num_most_common_words=500000, cache_dir="."):
     orig_model = load_word_vector_model(small=False, cache_dir=cache_dir)
     words = orig_model.index2entity[:num_most_common_words]
 
@@ -55,7 +59,7 @@ def create_small_w2v_model(num_most_common_words=500000, cache_dir=None):
     kv.add(words, vectors)
 
     w2v_small_filename = fewshot_filename(cache_dir, W2V_SMALL)
-    kv.save_word2vec_format(w2v_small_filename, binary=True)
+    kv.save_word2vec_format(w2v_small_filename, binary=False)
 
 
 def get_topk_w2v_vectors(word_emb_model, k, return_word_list=True):

@@ -136,3 +136,7 @@ my_data/*
 
 # macOS 
 *.DS_Store
+
+# Some data we don't want to upload to git, for size.
+data/w2v/*
+scripts/data/*
