@@ -16,7 +16,6 @@ from fewshot.data.utils import Dataset
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
 
-
 def _prepare_text(df, text_column):
     text = df[text_column].tolist()
     categories = df["category"].unique().tolist()
@@ -118,7 +117,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
 
     Args:
         datadir: Where to save/load cached files.
-        dataset_name: "amazon" for Amazon products dataset or "agnews".
+        dataset_name: "amazon", "agnews", or "reddit".
 
     Raises:
         ValueError: If an unexpected dataset_name is passed.

@@ -2,6 +2,7 @@ import attr
 from typing import List
 
 import pandas as pd
+import warnings
 
 from fewshot.embeddings.transformer_embeddings import (
     load_transformer_model_and_tokenizer,
@@ -17,21 +18,26 @@ class Dataset(object):
     examples: List[str] = attr.ib()
     # Labels associated with each example
     # TODO: at some point this has to change because in a real application labels may
-    # not exist or there might be fewer labels than examples (need to keep track)
+    #  not exist or there might be fewer labels than examples (need to keep track)
     labels: List[int] = attr.ib()
     # Categories that correspond to the number of unique Labels
     categories: List[str] = attr.ib()
     # embeddings for each example and each category
-    embeddings = attr.ib()
+    _embeddings = attr.ib(default=None)
 
-    @embeddings.default
-    def _get_embeddings(self, model_name_or_path=None):
-        # Load the model and the tokenizer
-        # TODO: need to be able to pass a specific model rather than using default
+    def calc_sbert_embeddings(self):
         model, tokenizer = load_transformer_model_and_tokenizer()
-        return get_transformer_embeddings(
+        self._embeddings = get_transformer_embeddings(
             self.examples + self.categories, model, tokenizer
         )
+
+    @property
+    def embeddings(self):
+        if not hasattr(self, "_embeddings") or self._embeddings is None:
+            warnings.warn("Should run dataset.calc_sbert_embeddings() first.  In the future this will fail.")
+            self.calc_sbert_embeddings()
+            # raise Exception("Run dataset.calc_sbert_embeddings() first.")
+        return self._embeddings
 
 
 def expand_labels(dataset: Dataset):
