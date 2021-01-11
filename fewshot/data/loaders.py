@@ -109,7 +109,7 @@ def _create_dataset_from_df(df, text_column: str, filename: str = None):
     return dataset
 
 
-def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
+def load_or_cache_data(datadir: str, dataset_name: str, with_cache:  bool = True) -> Dataset:
     """Loads sbert embeddings.
 
     First checks for a cached computation, otherwise builds the embedding with a
@@ -119,6 +119,7 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     Args:
         datadir: Where to save/load cached files.
         dataset_name: "amazon", "agnews", or "reddit".
+        with_cache: If set, use cache files.  Settable for testing.
 
     Raises:
         ValueError: If an unexpected dataset_name is passed.
@@ -129,9 +130,11 @@ def load_or_cache_data(datadir: str, dataset_name: str) -> Dataset:
     # Check for cached data.
     print("Checking for cached data...")
     dataset_name = dataset_name.lower()
-    filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
-    if os.path.exists(filename):
-        return pickle_load(filename)
+    filename = None
+    if with_cache:
+        filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
+        if os.path.exists(filename):
+            return pickle_load(filename)
 
     print(f"{dataset_name} dataset not found. Computing...")
     # Load appropriate data
