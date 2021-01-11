@@ -134,6 +134,10 @@ data/w2v/*
 
 old_notebooks/*
 
+# Ignore coverage files
+.coverage
+htmlcov/*
+
 # IDE config
 .idea/*
 
