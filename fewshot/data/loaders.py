@@ -104,6 +104,7 @@ def _create_dataset_from_df(df, text_column: str, filename: str = None):
     )
 
     if filename is not None:
+        dataset.calc_sbert_embeddings()
         pickle_save(dataset, filename)
     return dataset
 
