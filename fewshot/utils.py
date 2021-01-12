@@ -3,7 +3,6 @@ import pickle
 import pathlib
 
 import torch
-import torch.nn.functional as F
 
 
 def to_list(tensor):

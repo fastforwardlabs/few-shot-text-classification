@@ -1,15 +1,7 @@
 import os
-import requests
-from collections import Counter
-from nltk import FreqDist, word_tokenize
-import string
 
-# import nltk
-# nltk.download('stopwords')
-# nltk.download('punkt')
-
-from nltk.corpus import stopwords
 from gensim.models.keyedvectors import KeyedVectors
+import requests
 
 from fewshot.utils import fewshot_filename, create_path
 
@@ -18,7 +10,20 @@ ORIGINAL_W2V = "GoogleNews-vectors-negative300.bin.gz"
 W2V_SMALL = "GoogleNews-vectors-negative300_top500k.kv"
 
 
-def load_word_vector_model(small=True, cache_dir=W2VDIR):
+def load_word_vector_model(small: bool = True, cache_dir: str = W2VDIR) -> KeyedVectors:
+    """Load w2v model.
+
+    Will load from disk if available.  Otherwise will download and prepare as
+    necessary.  If the small argument is set, then will truncate to the top 500
+    most-common words.
+
+    Args:
+        small:  If set, will return a model with only the top 500 words.
+        cache_dir:  Where to look for previously-saved models on disk.
+
+    Returns:
+        Embedded vectors keyed by words they represent.
+    """
     # TODO: be able to load GloVe or Word2Vec embedding model
     # TODO: make a smaller version that only has, say, top 100k words
     if small:
@@ -71,30 +76,6 @@ def get_topk_w2v_vectors(word_emb_model, k, return_word_list=True):
     return vectors
 
 
-def tokenize_text(text):
-    """
-    text must be one long string
-    """
-    return word_tokenize(text)
-
-
-def remove_stopwords(tokens):
-    stop = stopwords.words("english") + list(string.punctuation)
-    words = [word for word in tokens if word not in stop]
-    return words
-
-
-def remove_short_words(tokens, min_length=3):
-    words = [word for word in tokens if len(word) >= min_length]
-    return words
-
-
-def get_topk_most_common_words(corpus_tokens, k=100):
-    word_freq = Counter(corpus_tokens).most_common(k)
-    most_common_words, counts = [list(c) for c in zip(*word_freq)]
-    return most_common_words
-
-
 def get_word_embeddings(word_list, w2v_model, return_not_found=True):
     vectors = []
     not_found = []
@@ -102,7 +83,7 @@ def get_word_embeddings(word_list, w2v_model, return_not_found=True):
         try:
             vectors.append(w2v_model.get_vector(word))
         except:
-            #print(f"Model does not contain an embedding vector for '{word}'")
+            # print(f"Model does not contain an embedding vector for '{word}'")
             not_found.append(word)
     if return_not_found:
         return vectors, not_found
