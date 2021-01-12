@@ -64,7 +64,7 @@ def compute_embeddings(dataset, model, batch_size=16, **kwargs):
     return all_embeddings
 
 
-def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **kwargs):
+def get_sentence_embeddings(data, model, tokenizer, output_filename=None, **kwargs):
     """
     data -> list: list of text
     """
