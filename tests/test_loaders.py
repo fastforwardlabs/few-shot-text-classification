@@ -34,7 +34,9 @@ class TestStringMethods(unittest.TestCase):
         )
 
         # Call load_or_cache_data.
-        self.assertEqual(load_or_cache_data(FAKE_DIR, "amazon", with_cache=False), expected_dataset)
+        self.assertEqual(
+            load_or_cache_data(FAKE_DIR, "amazon", with_cache=False), expected_dataset
+        )
 
     @mock.patch("fewshot.data.loaders._load_amazon_products_dataset")
     def test_load_or_cache_amazon_with_alternative_capitalization(
@@ -72,7 +74,9 @@ class TestStringMethods(unittest.TestCase):
         )
 
         # Call load_or_cache_data.
-        self.assertEqual(load_or_cache_data(FAKE_DIR, "agnews", with_cache=False), expected_dataset)
+        self.assertEqual(
+            load_or_cache_data(FAKE_DIR, "agnews", with_cache=False), expected_dataset
+        )
 
     @mock.patch("fewshot.data.loaders._load_reddit_dataset")
     def test_load_or_cache_reddit(
@@ -94,7 +98,9 @@ class TestStringMethods(unittest.TestCase):
         )
 
         # Call load_or_cache_data.
-        self.assertEqual(load_or_cache_data(FAKE_DIR, "reddit", with_cache=False), expected_dataset)
+        self.assertEqual(
+            load_or_cache_data(FAKE_DIR, "reddit", with_cache=False), expected_dataset
+        )
 
     @mock.patch("fewshot.data.loaders._load_amazon_products_dataset")
     def test_category_sorting(
