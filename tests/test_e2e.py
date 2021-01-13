@@ -34,18 +34,17 @@ VOCAB_SIZE = 20000
 
 
 class TestEndToEnd(unittest.TestCase):
-
     def _assert_files_exist(self):
         vocab_sbert_filename = fewshot_filename(
             W2VDIR, f"sbert_embeddings_for_{VOCAB_SIZE}_words.pt"
         )
-        assert(os.path.exists(vocab_sbert_filename))
+        assert os.path.exists(vocab_sbert_filename)
 
         dataset_filename = fewshot_filename(DATADIR, f"{DATASET_NAME}_dataset.pt")
-        assert(os.path.exists(dataset_filename))
+        assert os.path.exists(dataset_filename)
 
         w2v_filename = fewshot_filename(W2VDIR, W2V_SMALL)
-        assert(os.path.exists(w2v_filename))
+        assert os.path.exists(w2v_filename)
 
     def test_on_the_fly(self):
         # Test should only be run if the necessary files already exist.
@@ -67,12 +66,12 @@ class TestEndToEnd(unittest.TestCase):
         vocab_sbert_embeddings = cached_data["embeddings"]
 
         # Calculate linear map of best fit between maps.
-        Zmap = OLS_with_l2_regularization(
-            vocab_sbert_embeddings, vocab_w2v_embeddings
-        )
+        Zmap = OLS_with_l2_regularization(vocab_sbert_embeddings, vocab_w2v_embeddings)
 
         # Predict and score
-        score, predictions = predict_and_score(dataset, linear_maps=[Zmap], return_predictions=True)
+        score, predictions = predict_and_score(
+            dataset, linear_maps=[Zmap], return_predictions=True
+        )
         score3 = simple_topk_accuracy(dataset.labels, predictions)
 
         self.assertAlmostEqual(score, 65.5657894736842)
