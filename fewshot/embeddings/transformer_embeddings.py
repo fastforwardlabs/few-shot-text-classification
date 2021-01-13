@@ -66,7 +66,7 @@ def get_transformer_embeddings(data, model, tokenizer, output_filename=None, **k
     """
     data -> list: list of text
     """
-    # TODO: logging!
+    # TODO(#27): logging!
 
     features = batch_tokenize(data, tokenizer, **kwargs)
     dataset = prepare_dataset(features)
