@@ -32,7 +32,7 @@ class BayesianMSELoss(torch.nn.Module):
         # and represents our prior ??
         err1 = torch.nn.functional.mse_loss(x, y)
         # The second part ...
-        # TODO: think through how to explain this!!
+        # TODO(#26): think through how to explain this!!
         identity = torch.eye(w.size()[1], device=self.device)
         err2 = torch.sum((w - identity) ** 2) / x.data.nelement()
         return err1 + lam * err2
