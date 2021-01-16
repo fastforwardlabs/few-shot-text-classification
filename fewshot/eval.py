@@ -190,13 +190,19 @@ def simple_accuracy(ground_truth: List[Label], predictions: List[Prediction]) ->
     return _accuracy_impl(ground_truth, predictions, k=1)
 
 
-def simple_topk_accuracy(ground_truth: List[Label], predictions: List[Prediction]) -> float:
+def simple_topk_accuracy(
+    ground_truth: List[Label], predictions: List[Prediction]
+) -> float:
     """Computes accuracy, the portion of points for which one of the top-k
     (closest field on predictions) predicted labels matches the true label."""
     return _accuracy_impl(ground_truth, predictions)
 
 
-def predict_and_score(dataset: Dataset, linear_maps: List[torch.Tensor] = None, return_predictions: bool = False):
+def predict_and_score(
+    dataset: Dataset,
+    linear_maps: List[torch.Tensor] = None,
+    return_predictions: bool = False,
+):
     """Compute predictions and score for a given Dataset
 
     The predictions are made with the compute_predictions function, which looks
@@ -212,8 +218,10 @@ def predict_and_score(dataset: Dataset, linear_maps: List[torch.Tensor] = None, 
             return_predictions is set.
     """
 
-    example_features, label_features = _compute_linear_transformations(dataset, linear_maps)
-    
+    example_features, label_features = _compute_linear_transformations(
+        dataset, linear_maps
+    )
+
     predictions = compute_predictions(example_features, label_features)
 
     # compute the score for the predictions
@@ -221,4 +229,3 @@ def predict_and_score(dataset: Dataset, linear_maps: List[torch.Tensor] = None, 
     if return_predictions:
         return score, predictions
     return score
-

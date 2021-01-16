@@ -32,9 +32,7 @@ def batch_tokenize(text_list, tokenizer, max_length=384):
 
 
 def prepare_dataset(features):
-    dataset = TensorDataset(
-        features["input_ids"], features["attention_mask"]
-    )
+    dataset = TensorDataset(features["input_ids"], features["attention_mask"])
     return dataset
 
 
