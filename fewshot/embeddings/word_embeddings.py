@@ -103,7 +103,7 @@ def get_word_embeddings(word_list, w2v_model, return_not_found=True):
         try:
             vectors.append(w2v_model.get_vector(word))
         except:
-            #print(f"Model does not contain an embedding vector for '{word}'")
+            # print(f"Model does not contain an embedding vector for '{word}'")
             not_found.append(word)
     if return_not_found:
         return vectors, not_found

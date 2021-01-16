@@ -182,11 +182,13 @@ def simple_topk_accuracy(ground_truth, predictions: List[Prediction]):
 
 
 def predict_and_score(dataset, linear_maps=None, return_predictions=False):
-    """ Compute predictions and score for a given Dataset object, Wmap, 
-      and (optionally), Zmap"""
+    """Compute predictions and score for a given Dataset object, Wmap,
+    and (optionally), Zmap"""
 
-    example_features, label_features = _compute_linear_transformations(dataset, linear_maps)
-    
+    example_features, label_features = _compute_linear_transformations(
+        dataset, linear_maps
+    )
+
     predictions = compute_predictions(example_features, label_features)
 
     # compute the score for the predictions
@@ -194,4 +196,3 @@ def predict_and_score(dataset, linear_maps=None, return_predictions=False):
     if return_predictions:
         return score, predictions
     return score
-
