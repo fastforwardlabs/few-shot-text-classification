@@ -62,7 +62,7 @@ def load_word_vector_model(small=True, cache_dir=W2VDIR):
 
 def get_topk_w2v_vectors(word_emb_model, k, return_word_list=True):
     topk_words = word_emb_model.index2entity[:k]
-    # TODO: filter the topk words (e.g. remove numbers, punctuation, single letters, stop words... )
+    # TODO(#28): filter the topk words (e.g. remove numbers, punctuation, single letters, stop words... )
     vectors = []
     for word in topk_words:
         vectors.append(word_emb_model.get_vector(word))
