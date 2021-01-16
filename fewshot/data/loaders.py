@@ -2,19 +2,14 @@ import os
 import pandas as pd
 from datasets import load_dataset as load_HF_dataset
 
-from fewshot.utils import (
-    to_list,
-    to_tensor,
-    pickle_load, 
-    pickle_save, 
-    fewshot_filename
-)
+from fewshot.utils import to_list, to_tensor, pickle_load, pickle_save, fewshot_filename
 
 from fewshot.data.utils import Dataset
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
+
 
 def _prepare_text(df, text_column):
     text = df[text_column].tolist()
@@ -25,16 +20,16 @@ def _prepare_text(df, text_column):
 def _prepare_category_names(df):
     """
     Category names must be in the order implied by their integer label counterpart
-    e.g.  If we have integer Labels and category names mapped as follows: 
+    e.g.  If we have integer Labels and category names mapped as follows:
     0 --> "World"
     1 --> "Sports"
     2 --> "Business"
     3 --> "Sci/Tech"
 
-    Then we must return the category names in order like 
-    > categories = ["World", "Sports", "Business", "Sci/Tech"]  
+    Then we must return the category names in order like
+    > categories = ["World", "Sports", "Business", "Sci/Tech"]
 
-    They can NOT be alphabetical, which is what you'll get if you simply use 
+    They can NOT be alphabetical, which is what you'll get if you simply use
     > categories = df.category.unique()
     """
     mapping = set(zip(df.label, df.category))
@@ -54,7 +49,7 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
 def _load_reddit_dataset(datadir: str, categories="curated"):
     """
     Load a curated and smaller version of the Reddit dataset from dataset library.
-    
+
     There are two dataset options to choose from:
         1. (default) "curated" categories returns reddit examples from popular subreddits
             that have more meaningful subreddit names
@@ -109,7 +104,9 @@ def _create_dataset_from_df(df, text_column: str, filename: str = None):
     return dataset
 
 
-def load_or_cache_data(datadir: str, dataset_name: str, with_cache:  bool = True) -> Dataset:
+def load_or_cache_data(
+    datadir: str, dataset_name: str, with_cache: bool = True
+) -> Dataset:
     """Loads sbert embeddings.
 
     First checks for a cached computation, otherwise builds the embedding with a
@@ -148,9 +145,10 @@ def load_or_cache_data(datadir: str, dataset_name: str, with_cache:  bool = True
         df = _load_reddit_dataset(datadir)
         text_column, category_column = "summary", "category"
     else:
-        raise ValueError(f"Unexpected dataset name: {dataset_name}.\n \
-                          Please choose from: agnews, amazon, or reddit")
+        raise ValueError(
+            f"Unexpected dataset name: {dataset_name}.\n \
+                          Please choose from: agnews, amazon, or reddit"
+        )
 
     dataset = _create_dataset_from_df(df, text_column, filename=filename)
     return dataset
-
