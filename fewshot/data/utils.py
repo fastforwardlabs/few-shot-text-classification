@@ -4,9 +4,9 @@ from typing import List
 import pandas as pd
 import warnings
 
-from fewshot.embeddings.transformer_embeddings import (
+from fewshot.embeddings.sentence_embeddings import (
     load_transformer_model_and_tokenizer,
-    get_transformer_embeddings,
+    get_sentence_embeddings,
 )
 
 from fewshot.utils import to_list, to_tensor
@@ -30,7 +30,7 @@ class Dataset(object):
 
     def calc_sbert_embeddings(self):
         model, tokenizer = load_transformer_model_and_tokenizer()
-        self._embeddings = get_transformer_embeddings(
+        self._embeddings = get_sentence_embeddings(
             self.examples + self.categories, model, tokenizer
         )
 

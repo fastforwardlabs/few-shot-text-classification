@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 import torch
 from transformers import AutoModel, AutoTokenizer
 
-from fewshot.embeddings import transformer_embeddings as temb
+from fewshot.embeddings import sentence_embeddings as temb
 from fewshot.eval import compute_predictions
 from fewshot.data.loaders import load_or_cache_data
 from fewshot.utils import pickle_load, torch_load, fewshot_filename
@@ -84,7 +84,7 @@ def load_transformer_model_and_tokenizer(model_name_or_path=MODEL_NAME):
 
 
 @st.cache(allow_output_mutation=True)
-def get_transformer_embeddings(data):
+def get_sentence_embeddings(data):
     """
     data -> list: list of text 
     """
@@ -242,7 +242,7 @@ data = [text_input] + label_list
 model, tokenizer = load_transformer_model_and_tokenizer()
 
 # Compute embeddings for both the text and each of the labels 
-embeddings = get_transformer_embeddings(data)
+embeddings = get_sentence_embeddings(data)
 
 
 example_embedding = embeddings[0].unsqueeze(0)
