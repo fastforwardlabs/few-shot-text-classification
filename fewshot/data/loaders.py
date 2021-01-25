@@ -1,23 +1,25 @@
 import os
 import pandas as pd
+from typing import List
+
 from datasets import load_dataset as load_HF_dataset
 
-from fewshot.utils import to_list, to_tensor, pickle_load, pickle_save, fewshot_filename
-
 from fewshot.data.utils import Dataset
+from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
 REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
 
 
-def _prepare_text(df, text_column):
+def _prepare_text(df: pd.DataFrame, text_column: str) -> List[str]:
+    """Returns a list of string labels from a dataframe."""
     text = df[text_column].tolist()
     categories = df["category"].unique().tolist()
     return text + categories
 
 
-def _prepare_category_names(df):
+def _prepare_category_names(df: pd.DataFrame):
     """
     Category names must be in the order implied by their integer label counterpart
     e.g.  If we have integer Labels and category names mapped as follows:
@@ -36,7 +38,9 @@ def _prepare_category_names(df):
     return [c for l, c in sorted(mapping)]
 
 
-def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
+def _load_amazon_products_dataset(
+    datadir: str, num_categories: int = 6
+) -> pd.DataFrame:
     """Load Amazon products dataset from AMAZON_SAMPLE_PATH."""
     df = pd.read_csv(fewshot_filename(datadir, AMAZON_SAMPLE_PATH))
     keepers = df["category"].value_counts()[:num_categories]
@@ -46,7 +50,7 @@ def _load_amazon_products_dataset(datadir: str, num_categories: int = 6):
     return df
 
 
-def _load_reddit_dataset(datadir: str, categories="curated"):
+def _load_reddit_dataset(datadir: str, categories: str = "curated") -> pd.DataFrame:
     """
     Load a curated and smaller version of the Reddit dataset from dataset library.
 
@@ -81,7 +85,7 @@ def _load_reddit_dataset(datadir: str, categories="curated"):
     return df
 
 
-def _load_agnews_dataset(split: str = "test"):
+def _load_agnews_dataset(split: str = "test") -> pd.DataFrame:
     """Load AG News dataset from dataset library."""
     dataset = load_HF_dataset("ag_news", split=split)
     df = pd.DataFrame(dataset)
@@ -91,7 +95,9 @@ def _load_agnews_dataset(split: str = "test"):
     return df
 
 
-def _create_dataset_from_df(df, text_column: str, filename: str = None):
+def _create_dataset_from_df(
+    df: pd.DataFrame, text_column: str, filename: str = None
+) -> Dataset:
     dataset = Dataset(
         examples=df[text_column].tolist(),
         labels=df.label.tolist(),

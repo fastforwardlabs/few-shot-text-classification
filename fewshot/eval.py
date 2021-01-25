@@ -8,15 +8,15 @@
 
 import itertools
 import math
-from typing import Any, Callable, List, Optional, Iterator, Tuple
+import pandas as pd
+from typing import Any, Callable, List, Optional, Tuple
 
 import attr
-import pandas as pd
 import torch
 from torch.nn import functional as F
 
 from fewshot.utils import to_list
-from fewshot.data.loaders import Dataset
+from fewshot.data.utils import Dataset, Label
 
 MISSING_VALUE = "***"
 PredictionClass = Any
@@ -51,6 +51,7 @@ class Prediction(object):
 
 
 def closest_label(sentence_representation, label_representations):
+    """Returns the closest label and score for the passed sentence."""
     similarities = F.cosine_similarity(sentence_representation, label_representations)
     closest = similarities.argsort(descending=True)
     return similarities, closest
@@ -59,12 +60,26 @@ def closest_label(sentence_representation, label_representations):
 def _compute_linear_transformations(
     dataset: Dataset, linear_maps: Optional[List[torch.Tensor]] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Compute embeddings for data and labels from dataset.
 
+    We use the fact that the number of dataset categories determines how the
+    embeddings split into data embeddings (X) and label embeddings (Y).  We then
+    transform these by applying all the linear maps provided in order, by
+    multiplying on the right.
+
+    Args:
+        dataset:  A Dataset which we use for the categories and embeddings.
+        linear_maps:  An optional list of linear transformations that we
+            multiply on the right.
+
+    Returns:
+        Embeddings for the data and the labels.
+    """
     if linear_maps is None:
         linear_maps = []
 
     # `dataset.embeddings` contains the SBERT embeddings for every example as well
-    # for the label names.
+    #  for the label names.
     # We separate the example embeddings from the label embeddings for clarity
     num_categories = len(dataset.categories)
     X = dataset.embeddings[:-num_categories]
@@ -78,8 +93,8 @@ def _compute_linear_transformations(
 
 
 def compute_predictions(
-    example_embeddings,
-    label_embeddings,
+    example_embeddings: torch.Tensor,
+    label_embeddings: torch.Tensor,
     k: int = 3,
     transformation: Optional[Callable] = None,
 ) -> List[Prediction]:
@@ -130,8 +145,8 @@ def compute_predictions(
 
 
 def _accuracy_impl(
-    ground_truth, predictions: List[Prediction], k: Optional[int] = None
-):
+    ground_truth: List[Label], predictions: List[Prediction], k: Optional[int] = None
+) -> float:
     """Computes accuracy, the portion of points for which one of the top-k
     predicted labels matches the true label.
 
@@ -169,21 +184,39 @@ def _accuracy_impl(
     return matched / total * 100
 
 
-def simple_accuracy(ground_truth, predictions: List[Prediction]):
+def simple_accuracy(ground_truth: List[Label], predictions: List[Prediction]) -> float:
     """Computes accuracy, the portion of points for which the best prediction
     matches the true label."""
     return _accuracy_impl(ground_truth, predictions, k=1)
 
 
-def simple_topk_accuracy(ground_truth, predictions: List[Prediction]):
+def simple_topk_accuracy(
+    ground_truth: List[Label], predictions: List[Prediction]
+) -> float:
     """Computes accuracy, the portion of points for which one of the top-k
     (closest field on predictions) predicted labels matches the true label."""
     return _accuracy_impl(ground_truth, predictions)
 
 
-def predict_and_score(dataset, linear_maps=None, return_predictions=False):
-    """Compute predictions and score for a given Dataset object, Wmap,
-    and (optionally), Zmap"""
+def predict_and_score(
+    dataset: Dataset,
+    linear_maps: List[torch.Tensor] = None,
+    return_predictions: bool = False,
+):
+    """Compute predictions and score for a given Dataset
+
+    The predictions are made with the compute_predictions function, which looks
+    for the closest label to each data point in the embedding space.
+
+    Args:
+        dataset:  The data that we want to make predictions for.
+        linear_maps:  An optional list of linear maps to apply before predicting
+        return_predictions:  If set, return the list of predictions.
+
+    Returns:
+        The (simple accuracy) score and the predictions made if
+            return_predictions is set.
+    """
 
     example_features, label_features = _compute_linear_transformations(
         dataset, linear_maps

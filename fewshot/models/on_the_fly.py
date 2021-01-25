@@ -2,8 +2,11 @@ import torch
 import torch.nn.functional as F
 
 
-def OLS_with_l2_regularization(X, Y, alpha=0):
-    """
+def OLS_with_l2_regularization(
+    X: torch.Tensor, Y: torch.Tensor, alpha: float = 0
+) -> torch.Tensor:
+    """Computes ordinary least squares
+
     Ordinary least squares with l2 regularization can be expressed in closed form,
     meaning that we do not need to perform gradient descent in order
     to find the best fit solution!

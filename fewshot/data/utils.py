@@ -12,6 +12,9 @@ from fewshot.embeddings.sentence_embeddings import (
 from fewshot.utils import to_list, to_tensor
 
 
+Label = int
+
+
 @attr.s
 class Dataset(object):
     # These are the text (news articles, product descriptions, etc.)
@@ -19,7 +22,7 @@ class Dataset(object):
     # Labels associated with each example
     # TODO: at some point this has to change because in a real application labels may
     #  not exist or there might be fewer labels than examples (need to keep track)
-    labels: List[int] = attr.ib()
+    labels: List[Label] = attr.ib()
     # Categories that correspond to the number of unique Labels
     categories: List[str] = attr.ib()
     # embeddings for each example and each category
@@ -42,8 +45,9 @@ class Dataset(object):
         return self._embeddings
 
 
-def expand_labels(dataset: Dataset):
-    """
+def expand_labels(dataset: Dataset) -> Dataset:
+    """Attach label_embeddings to dataset.
+
     When performing supervised learning (e.g. few-shot), we will need a label embedding for
     each example in the dataset. Most datasets only have a handful of labels (4-10).
     Passing these repeatedly through SBERT for each example is slow, repetitive and
@@ -62,14 +66,13 @@ def expand_labels(dataset: Dataset):
     dataset.label_embeddings = to_tensor(
         [label_embeddings[label] for label in dataset.labels]
     )
-    # dataset.embeddings = dataset.embeddings[:-num_labels]
     return dataset
 
 
-def select_subsample(df: pd.DataFrame, sample_size: int, random_state=42):
-    """Given a DataFrame, randomly subsample sample_size number of examples
-    from each category
-    """
+def select_subsample(
+    df: pd.DataFrame, sample_size: int, random_state: int = 42
+) -> pd.DataFrame:
+    """Given a DataFrame, randomly subsample sample_size number of examples from each category."""
     return (
         df.groupby("category", group_keys=False)
         .apply(lambda x: x.sample(min(len(x), sample_size), random_state=random_state))

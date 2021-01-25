@@ -1,7 +1,6 @@
-from tqdm.notebook import tqdm, tnrange
-
 import torch
-from torch.utils.data import DataLoader, TensorDataset, RandomSampler
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm.notebook import tqdm
 
 
 class FewShotLinearRegression(torch.nn.Module):
