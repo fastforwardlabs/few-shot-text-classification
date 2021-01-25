@@ -9,9 +9,9 @@ from fewshot.embeddings.word_embeddings import (
     load_word_vector_model,
     get_topk_w2v_vectors,
 )
-from fewshot.embeddings.transformer_embeddings import (
+from fewshot.embeddings.sentence_embeddings import (
     load_transformer_model_and_tokenizer,
-    get_transformer_embeddings,
+    get_sentence_embeddings,
 )
 
 from fewshot.models.on_the_fly import OLS_with_l2_regularization
@@ -85,7 +85,7 @@ if os.path.exists(vocab_sbert_filename):
     vocab_sbert_embeddings = cached_data["embeddings"]
 else:
     model, tokenizer = load_transformer_model_and_tokenizer()
-    vocab_sbert_embeddings = get_transformer_embeddings(
+    vocab_sbert_embeddings = get_sentence_embeddings(
         vocab, model, tokenizer, output_filename=vocab_sbert_filename
     )
 

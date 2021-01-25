@@ -110,7 +110,7 @@ def load_or_cache_data(
     """Loads sbert embeddings.
 
     First checks for a cached computation, otherwise builds the embedding with a
-    call to get_transformer_embeddings using the specified dataset and standard
+    call to get_sentence_embeddings using the specified dataset and standard
     model and tokenizer.
 
     Args:
