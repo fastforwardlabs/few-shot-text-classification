@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ###########################################################################
 #
 #  CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
@@ -40,8 +41,11 @@
 
 from tqdm.notebook import tqdm, tnrange
 
+=======
+>>>>>>> 1cf022c9f013de10c7da7b14b2044dfed2dff280
 import torch
-from torch.utils.data import DataLoader, TensorDataset, RandomSampler
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm.notebook import tqdm
 
 
 class FewShotLinearRegression(torch.nn.Module):
@@ -73,25 +77,25 @@ class BayesianMSELoss(torch.nn.Module):
         # and represents our prior ??
         err1 = torch.nn.functional.mse_loss(x, y)
         # The second part ...
-        # TODO: think through how to explain this!!
+        # TODO(#26): think through how to explain this!!
         identity = torch.eye(w.size()[1], device=self.device)
         err2 = torch.sum((w - identity) ** 2) / x.data.nelement()
         return err1 + lam * err2
 
 
 def prepare_dataloader(dataset, Zmap=None, batch_size=50):
-    """ Convert a Dataset object to a PyTorch DataLoader object for 
-        training Wmap
+    """Convert a Dataset object to a PyTorch DataLoader object for
+    training Wmap
 
-        Include Zmap if Wmap should be trained on SBERT*Zmap representations
+    Include Zmap if Wmap should be trained on SBERT*Zmap representations
     """
-    example_embeddings = dataset.embeddings[:-len(dataset.categories)]
+    example_embeddings = dataset.embeddings[: -len(dataset.categories)]
     if Zmap is not None:
-      X_train = torch.mm(example_embeddings, Zmap)
-      y_train = torch.mm(dataset.label_embeddings, Zmap)
+        X_train = torch.mm(example_embeddings, Zmap)
+        y_train = torch.mm(dataset.label_embeddings, Zmap)
     else:
-      X_train = example_embeddings
-      y_train = dataset.label_embeddings
+        X_train = example_embeddings
+        y_train = dataset.label_embeddings
 
     tensor_dataset = TensorDataset(X_train, y_train)
     data_loader = DataLoader(tensor_dataset, shuffle=True, batch_size=batch_size)

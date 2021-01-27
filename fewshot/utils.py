@@ -43,7 +43,6 @@ import pickle
 import pathlib
 
 import torch
-import torch.nn.functional as F
 
 
 def to_list(tensor):
@@ -84,7 +83,8 @@ def pickle_save(vector, filename, overwrite=False):
 
 def pickle_load(filename):
     if os.path.exists(filename):
-        return pickle.load(open(filename, "rb"))
+        with open(filename, "rb") as f:
+            return pickle.load(f)
     else:
         print(f"{filename} does not exist!")
 
