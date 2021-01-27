@@ -1,0 +1,35 @@
+name: Few-Shot Text Classification
+description: Text classification application in several limited-labeled-data regimes using latent text embeddings
+author: Cloudera Inc.
+specification_version: 1.0
+prototype_version: 1.0
+date: "2020-01-27"
+api_version: 1
+
+tasks:
+  - type: create_job
+    name: Install dependencies
+    entity_label: install_dependencies
+    script: cml/install_dependencies.py
+    arguments: None
+    short_summary: Create job to install dependencies.
+    cpu: 1
+    memory: 8
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+    kernel: python3
+
+  - type: run_job
+    entity_label: install_dependencies
+    short_summary: Running install dependencies job. 
+
+  - type: start_application
+    short_summary: Starting few-shot text classification application 
+    name: Few-Shot Text Classifier
+    subdomain: fewshot
+    script: apps/launch-fewshot-demo.py
+    environment_variables:
+      TASK_TYPE: START_APPLICATION
+    kernel: python3
+    cpu: 1
+    memory: 8
