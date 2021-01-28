@@ -1,10 +1,10 @@
 # Few-Shot Text Classification
 
-This repo accompanies the Cloudera Fast Forward report [Few-Shot Text Classification](https://few-shot-text-classification.fastforwardlabs.com/). It provides an example application of classification using latent text embeddings with [Sentence-BERT](https://www.sbert.net/) to the AG News dataset containing thousands of news articles. 
+This repo accompanies the Cloudera Fast Forward report [Few-Shot Text Classification](https://few-shot-text-classification.fastforwardlabs.com/). It provides small library to fascilitate text classification using latent text embeddings with [Sentence-BERT](https://www.sbert.net/) as well as a simple application to explore text classification in several limited-labeled-data regimes. 
 
-The primary output of this repository is a small application the allows one to interact with text data and perform classification under several limited-labeled-data regimes. 
+The primary output of this repository is the Few-Shot Text Classification application, a prototype user interface for the latent text embedding classification method. It includes the ability to apply various models for both on-the-fly and few-shot classification on the AG News dataset. 
 
-<img src="images/fewshot_app.png" alt="Few-Shot Text Classification app interface" width="80%">
+![Few-Shot Text Classification app interface](images/fewshot_app.png)
 
 Instructions are given both for general use (on a laptop, say), and for Cloudera CML and CDSW. We'll first describe what's here, then go through how to run everything.
 
@@ -16,11 +16,20 @@ Instructions are given both for general use (on a laptop, say), and for Cloudera
 ├── cml         # This folder contains scripts that facilitate the project launch on CML.
 ├── data        # This folder contains starter data, and is where text embeddings will live.
 ├── scripts     # This is where all the code that does something lives.
-├── notebooks   # This contains several Jupyter and Colab notebooks that accompany the report and demonstrate basic usage.
+├── notebooks   # This contains several Jupyter/Colab notebooks that accompany the report and demonstrate basic usage.
 └── fewshot     # A small library of useful functions.
 ```
 
 There are also `images` and  `tests` directories that are unimportant and can be ignored. Let's examine each of the important folders in turn.
+
+### `apps`
+The application accompanying this project comes with a launcher script to assist launching an [Application](https://docs.cloudera.com/machine-learning/cloud/applications/topics/ml-applications.html) with CDSW/CML.
+To launch the applications in another environment, run the code inside the launcher file, with the prefixed `!` removed.
+You may need to specify different ports.
+
+### `cml`
+This script facilitates the automated project setup on CML and is triggered by the declarative pipeline as defined in the `.project-metadata.yaml` file found in the project's root directory.
+
 
 ### `fewshot`
 ```
@@ -29,7 +38,7 @@ fewshot
 │   ├── loaders.py
 │   └── utils.py
 ├── embeddings
-│    ├── transformer_embeddings.py
+│    ├── sentence_embeddings.py
 │    └── word_embeddings.py
 ├── models
 │    ├── few_shot.py
@@ -39,7 +48,7 @@ fewshot
 ```
 The `data/loaders.py` is used in all scripts and notebooks, containing code that returns a specialized `Dataset` object that makes it easier to handle the original text, embeddings, and labels simultaneously.  
 
-The latent text embedding method relies on first embedding text with Sentence-BERT before performing any other steps. This code is found under `embeddings/transformer_embeddings.py`. More sophisticated methods incorporate word embeddings to augment the Sentence-BERT embeddings, and this code is under `embeddings/word_embeddings.py`. 
+The latent text embedding method relies on first embedding text with Sentence-BERT before performing any other steps. This code is found under `embeddings/sentence_embeddings.py`. More sophisticated methods incorporate word embeddings to augment the Sentence-BERT embeddings, and this code is under `embeddings/word_embeddings.py`. 
 
 There are two regimes in which we perform text classification and we include a model for each. `models/few_shot.py` contains code to train a model that incorporates _some_ labeled data, while `models/on_the_fly.py` computes a model that performs classification with _no labeled data at all_. 
 
@@ -50,9 +59,13 @@ We also provide helper functions for generating predictions and computing metric
 ```
 scripts
 ├── few-shot_text_classification.py
-├── on-the-fly_text_classification.py
+└── on-the-fly_text_classification.py
 ```
-These scripts perform basic text classification and data visualization for the various classification regimes. 
+These scripts perform basic text classification for the various classification regimes. 
+
+* `on-the-fly_text_classification.py` performs **on-the-fly (zero-shot) text classification**; that is, text classification with *no labeled training examples*. This script generates a simple model (called a `Zmap`, stored in the `data/maps` directory) that is used in the next script as well as in the app. `Zmaps` are data-agnostic because they do not rely specifically on training data. We have already performed this analysis and include this output for you.
+
+* `few-shot_text_classification.py` performs **few-shot text classification**; that is, text classification with *only a few labeled training examples.*   This script generates a model known as a `Wmap`. `Wmaps` rely on training data and are thus specific to a given dataset. In the `data/maps` directory we include a `Wmap` trained on the AG News dataset. 
 
 ### `notebooks`
 ```
@@ -61,14 +74,9 @@ notebooks
 ├── Wmap_Experiments.ipynb
 └── Zmap_Experiments.ipynb
 ```
+The `Wmap_Experiments` and `Zmap_Experiments` notebooks walk through analysis discussed in the accompanying [Few-Shot Text Classification report](https://few-shot-text-classification.fastforwardlabs.com/) and are intended for interactive learning purposes. These work best when run as a Colab (rather than as a Jupyter Notebook) to take advantage of free GPUs. 
 
-### `apps`
-The application accompanying this project comes with a launcher script to assist launching an [Application](https://docs.cloudera.com/machine-learning/cloud/applications/topics/ml-applications.html) with CDSW/CML.
-To launch the applications in another environment, run the code inside the launcher file, with the prefixed `!` removed.
-You may need to specify different ports.
-
-The Few-Shot Text Classification application is a prototype user interface for the latent text embedding classification method and includes the ability to apply various models for both on-the-fly and few-shot classification on the AG News dataset. 
-
+The `CreatingRedditDataset` notebook is included purely to document the steps taken when creating the **Reddit** dataset that we include with this module (located in the `data/reddit` directory.) It is not intended to be run directly. 
 
 ## Performing text classification in limited-labeled-data regimes
 To go from a fresh clone of the repo to the final state, follow these instructions in order.
@@ -96,18 +104,12 @@ The `requirements.txt` file installs a GPU-compatible version of PyTorch. If GPU
 ```python
 !pip3 install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 ```
-(For non-CML/CDSW environments, remove the `!`.)
+(Remove the `!` for non-CML/CDSW environments.)
 
 ---
 
-Next, from inside the root directory of this repo, install the `fewshot` module with
-
-```python
-pip3 install -e .
-```
-
 ### Data
-We use two datasets in several of the scripts and notebooks, although the final application currently only allows interaction with the AG News dataset. 
+We use two datasets in several of the scripts and notebooks, although the few-shot application currently only allows interaction with the AG News dataset. 
 
 **AG News** 
 
@@ -120,18 +122,27 @@ This [dataset](https://www.aclweb.org/anthology/W17-4508/) contains nearly four 
 ### Scripts / Notebooks
 To fit models and perform text classification experiments, one can either call the scripts in the `scripts` directory, or walk through a more detailed process in either the `notebooks/Zmap_Experiments.ipynb` or `notebooks/Wmap_Experiments.ipynb` notebooks. 
 
-To run scripts, follow this procedure in the terminal:
+To run scripts, follow this procedure in the terminal or a Session:
 
-```bash
-python3 scripts/on-the-fly_text_classification.py
-python3 scripts/few-shot_text_classification.py
+```python
+!python3 scripts/on-the-fly_text_classification.py
+!python3 scripts/few-shot_text_classification.py
 ```
+(Remove the `!` for non-CML/CDSW environments.)
 
-These scripts will generate several models (known either as `Zmaps` or `Wmaps`), which will be saved to the `data` directory under the `maps` subdirectory. These models are used in our prototype application and we have thus included pre-learned versions already. 
+These scripts will generate several models (known either as `Zmaps` or `Wmaps`), which will be saved to the `data/maps` directory. These models are used in our prototype application and we have thus included pre-learned versions already. 
 
+## Deploying on CML
+There are three ways to launch this project on CML:
+
+1. **From Prototype Catalog** - Navigate to the Prototype Catalog on a CML workspace, select the "Deep Learning for Question Answering" tile, click "Launch as Project", click "Configure Project"
+2. **As ML Prototype** - In a CML workspace, click "New Project", add a Project Name, select "ML Prototype" as the Initial Setup option, copy in the repo URL, click "Create Project", click "Configure Project"
+3. **Manual Setup** - In a CML workspace, click "New Project", add a Project Name, select "Git" as the Initial Setup option, copy in the repo URL, click "Create Project". Then, follow the installation instructions above.
+
+## Additional information
 ### Tests
 
-The library logic is partly covered by unittests.  To run all tests, use:
+The `fewshot` module logic is partly covered by unittests.  To run all tests, use:
 
 ```bash
 python -m unittest discover
@@ -139,7 +150,7 @@ python -m unittest discover
 
 We recommend running tests before committing any major changes.
 
-The end-to-end test (test_e2e.py) will not work if files generated by on-the-fly_text_classification.py have not been generated.  (These files are checked in.)
+The end-to-end test (`test_e2e.py`) will not work if files generated by `on-the-fly_text_classification.py` have not been generated.  (These files are checked in.)
 
 ### Formatting
 

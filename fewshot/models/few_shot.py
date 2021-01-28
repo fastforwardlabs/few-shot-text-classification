@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ###########################################################################
 #
 #  CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
@@ -41,8 +40,6 @@
 
 from tqdm.notebook import tqdm, tnrange
 
-=======
->>>>>>> 1cf022c9f013de10c7da7b14b2044dfed2dff280
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm.notebook import tqdm
