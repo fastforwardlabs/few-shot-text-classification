@@ -74,7 +74,7 @@ notebooks
 ├── Wmap_Experiments.ipynb
 └── Zmap_Experiments.ipynb
 ```
-The `Wmap_Experiments` and `Zmap_Experiments` notebooks walk through analysis discussed in the accompanying [Few-Shot Text Classification report](https://few-shot-text-classification.fastforwardlabs.com/) and are intended for interactive learning purposes. These work best when run as a Colab (rather than as a Jupyter Notebook) to take advantage of free GPUs. 
+The `Wmap_Experiments` and `Zmap_Experiments` notebooks walk through analysis discussed in the accompanying [Few-Shot Text Classification report](https://few-shot-text-classification.fastforwardlabs.com/) and are intended for interactive learning purposes. These work best when run as a [Colab](https://colab.research.google.com/notebooks/intro.ipynb) (rather than as a Jupyter Notebook) to take advantage of free GPUs. 
 
 The `CreatingRedditDataset` notebook is included purely to document the steps taken when creating the **Reddit** dataset that we include with this module (located in the `data/reddit` directory.) It is not intended to be run directly. 
 
