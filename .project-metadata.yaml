@@ -13,7 +13,7 @@ tasks:
     script: cml/install_dependencies.py
     arguments: None
     short_summary: Create job to install dependencies.
-    cpu: 1
+    cpu: 2
     memory: 8
     environment:
       TASK_TYPE: CREATE/RUN_JOB
@@ -31,5 +31,5 @@ tasks:
     environment_variables:
       TASK_TYPE: START_APPLICATION
     kernel: python3
-    cpu: 1
+    cpu: 2
     memory: 8
