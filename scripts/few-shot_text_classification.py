@@ -100,8 +100,7 @@ Zmap = torch.load(fewshot_filename("data/maps/Zmap_20000_words.pt"))
 data_loader = prepare_dataloader(news_train_subset, Zmap)
 
 # instantiate the model
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 learning_rate = 0.1
 lambda_regularization = 500
 num_epochs = 1000

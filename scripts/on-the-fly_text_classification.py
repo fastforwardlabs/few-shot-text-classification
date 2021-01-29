@@ -140,4 +140,4 @@ print(f"Score considering the top {TOPK} best labels: {score3}")
 # And we didn't even need training data.
 
 # Let's save this Zmap
-torch_save(Zmap, f"data/Zmaps/Zmap_{VOCAB_SIZE}_words.pt")
+torch_save(Zmap, f"data/maps/Zmap_{VOCAB_SIZE}_words.pt")

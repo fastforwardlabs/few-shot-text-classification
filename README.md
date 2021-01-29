@@ -61,11 +61,7 @@ scripts
 ├── few-shot_text_classification.py
 └── on-the-fly_text_classification.py
 ```
-These scripts perform basic text classification for the various classification regimes. 
-
-* `on-the-fly_text_classification.py` performs **on-the-fly (zero-shot) text classification**; that is, text classification with *no labeled training examples*. This script generates a simple model (called a `Zmap`, stored in the `data/maps` directory) that is used in the next script as well as in the app. `Zmaps` are data-agnostic because they do not rely specifically on training data. We have already performed this analysis and include this output for you.
-
-* `few-shot_text_classification.py` performs **few-shot text classification**; that is, text classification with *only a few labeled training examples.*   This script generates a model known as a `Wmap`. `Wmaps` rely on training data and are thus specific to a given dataset. In the `data/maps` directory we include a `Wmap` trained on the AG News dataset. 
+These scripts perform basic text classification for the various classification regimes and generate outputs that are used in the app. These outputs have been pre-trained and included with this repo. 
 
 ### `notebooks`
 ```
@@ -120,7 +116,11 @@ This is a collection of 127,600 news articles in four categories. The dataset is
 This [dataset](https://www.aclweb.org/anthology/W17-4508/) contains nearly four million preprocessed submissions and comments from Reddit, collected between 2006 and 2016. Like AG News, it is also available on the HuggingFace Datasets repository, but it is **extremely large** and we do not recommend that you download it yourself. Instead, we provide curated subsamples of this dataset in the `data/reddit` directory, as well as a notebook (`CreatingRedditDataset.ipynb`) detailing how we performed the sampling. 
 
 ### Scripts / Notebooks
-To fit models and perform text classification experiments, one can either call the scripts in the `scripts` directory, or walk through a more detailed process in either the `notebooks/Zmap_Experiments.ipynb` or `notebooks/Wmap_Experiments.ipynb` notebooks. 
+To fit models and perform text classification experiments, one can either call the scripts in the `scripts` directory, or walk through a more detailed process in the notebooks. Their functionality is as follows: 
+
+* `scripts/on-the-fly_text_classification.py` performs **on-the-fly (zero-shot) text classification**; that is, text classification with *no labeled training examples*. This script generates a simple model (called a `Zmap`, stored in the `data/maps` directory) that is used in the next script as well as in the app. `Zmaps` are data-agnostic because they do not rely specifically on training data. We have already performed this analysis and include this output for you. Similar procedures are echoed in the `notebooks/Zmap_Experiments` notebook. 
+
+* `scripts/few-shot_text_classification.py` performs **few-shot text classification**; that is, text classification with *only a few labeled training examples.* This script generates a model known as a `Wmap`. `Wmaps` rely on training data and are thus specific to a given dataset. In the `data/maps` directory we include a `Wmap` trained on the AG News dataset, which is also used in the app. Similar procedures are echoed in the `notebooks/Wmap_Experiments` notebook. 
 
 To run scripts, follow this procedure in the terminal or a Session:
 
@@ -130,7 +130,10 @@ To run scripts, follow this procedure in the terminal or a Session:
 ```
 (Remove the `!` for non-CML/CDSW environments.)
 
-These scripts will generate several models (known either as `Zmaps` or `Wmaps`), which will be saved to the `data/maps` directory. These models are used in our prototype application and we have thus included pre-learned versions already. 
+---
+NOTE: The scripts are intended to be run on a GPU-enabled machine in order to complete in a timely fashion. On a CPU-only machine, these scripts can take from 3-6 hours to complete. With GPUs enabled, this reduces to a few minutes.
+
+---
 
 ## Deploying on CML
 There are three ways to launch this project on CML:
