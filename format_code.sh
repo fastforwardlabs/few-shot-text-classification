@@ -38,8 +38,8 @@
 #
 # ###########################################################################
 
-python -m black *.py
-python -m black fewshot/*.py
-python -m black fewshot/*/*.py
-python -m black scripts/*.py
-python -m black tests/*.py
+python3 -m black *.py
+python3 -m black fewshot/*.py
+python3 -m black fewshot/*/*.py
+python3 -m black scripts/*.py
+python3 -m black tests/*.py
