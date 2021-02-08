@@ -49,7 +49,7 @@ from fewshot.utils import pickle_load, pickle_save, fewshot_filename
 
 # Path in datadir folder.
 AMAZON_SAMPLE_PATH = "filtered_amazon_co-ecommerce_sample.csv"
-REDDIT_SAMPLE_PATH = "reddit_subset_test.csv"
+REDDIT_SAMPLE_PATH = "reddit_subset_test1300.csv"
 
 
 def _prepare_text(df: pd.DataFrame, text_column: str) -> List[str]:
@@ -91,6 +91,9 @@ def _load_amazon_products_dataset(
 
 
 def _load_reddit_dataset(datadir: str, categories: str = "curated") -> pd.DataFrame:
+    # TODO: the dataset included with the repo no longer allows a choice between 
+    #       "curated" or "top10" -- curated subreddits only; should update this here
+    #       and remove that functionality 
     """
     Load a curated and smaller version of the Reddit dataset from dataset library.
 
@@ -175,7 +178,7 @@ def load_or_cache_data(
     dataset_name = dataset_name.lower()
     filename = None
     if with_cache:
-        filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pt")
+        filename = fewshot_filename(datadir, f"{dataset_name}_dataset.pkl")
         if os.path.exists(filename):
             return pickle_load(filename)
 
