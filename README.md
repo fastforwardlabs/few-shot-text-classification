@@ -1,6 +1,6 @@
 # Few-Shot Text Classification
 
-This repo accompanies the Cloudera Fast Forward report [Few-Shot Text Classification](https://few-shot-text-classification.fastforwardlabs.com/). It provides small library to fascilitate text classification using latent text embeddings with [Sentence-BERT](https://www.sbert.net/) as well as a simple application to explore text classification in several limited-labeled-data regimes. 
+This repo accompanies the Cloudera Fast Forward report [Few-Shot Text Classification](https://few-shot-text-classification.fastforwardlabs.com/). It provides small library to facilitate text classification using latent text embeddings with [Sentence-BERT](https://www.sbert.net/) as well as a simple application to explore text classification in several limited-labeled-data regimes. 
 
 The primary output of this repository is the Few-Shot Text Classification application, a prototype user interface for the latent text embedding classification method. It includes the ability to apply various models for both on-the-fly and few-shot classification on the AG News dataset. 
 
@@ -109,20 +109,20 @@ We use two datasets in several of the scripts and notebooks, although the few-sh
 
 **AG News** 
 
-This is a collection of 127,600 news articles in four categories. The dataset is pulled from the open-source [Datasets repository](https://huggingface.co/datasets) maintained by HuggingFace. The `load_or_cache_data` function in the `data/loaders.py` file manages downloading this dataset on its first call, after which the dataset is cached and does not need to be downloaded again. 
+This is a collection of 127,600 news articles in four categories. The [dataset](https://huggingface.co/datasets/ag_news) is pulled from the open-source [Datasets repository](https://huggingface.co/datasets) maintained by HuggingFace. The `load_or_cache_data` function in the `data/loaders.py` file manages downloading this dataset on its first call, after which the dataset is cached and does not need to be downloaded again. 
 
 **Reddit**
 
-This [dataset](https://www.aclweb.org/anthology/W17-4508/) contains nearly four million preprocessed submissions and comments from Reddit, collected between 2006 and 2016. Like AG News, it is also available on the HuggingFace Datasets repository, but it is **extremely large** and we do not recommend that you download it yourself. Instead, we provide curated subsamples of this dataset in the `data/reddit` directory, as well as a notebook (`CreatingRedditDataset.ipynb`) detailing how we performed the sampling. 
+This [dataset](https://www.aclweb.org/anthology/W17-4508/) contains nearly four million preprocessed submissions and comments from Reddit, collected between 2006 and 2016. Like AG News, it is also [available](https://huggingface.co/datasets/reddit) on the HuggingFace Datasets repository, but it is **extremely large** and we do not recommend that you download it yourself. Instead, we provide curated subsamples of this dataset in the `data/reddit` directory, as well as a notebook (`CreatingRedditDataset.ipynb`) detailing how we performed the sampling. 
 
 ### Scripts / Notebooks
 To fit models and perform text classification experiments, one can either call the scripts in the `scripts` directory, or walk through a more detailed process in the notebooks. Their functionality is as follows: 
 
-* `scripts/on-the-fly_text_classification.py` performs **on-the-fly (zero-shot) text classification**; that is, text classification with *no labeled training examples*. This script generates a simple model (called a `Zmap`, stored in the `data/maps` directory) that is used in the next script as well as in the app. `Zmaps` are data-agnostic because they do not rely specifically on training data. We have already performed this analysis and include this output for you. Similar procedures are echoed in the `notebooks/Zmap_Experiments` notebook. 
+* `scripts/on-the-fly_text_classification.py` performs **on-the-fly (zero-shot) text classification**; that is, text classification with *no labeled training examples*. This script generates a simple model (called a `Zmap`, stored in the `data/maps` directory) that is used in the next script as well as in the app. `Zmaps` are data-agnostic because they do not rely specifically on training data. We have already performed this analysis and include this output for you. A similar workflow is explored in the `notebooks/Zmap_Experiments` notebook. 
 
-* `scripts/few-shot_text_classification.py` performs **few-shot text classification**; that is, text classification with *only a few labeled training examples.* This script generates a model known as a `Wmap`. `Wmaps` rely on training data and are thus specific to a given dataset. In the `data/maps` directory we include a `Wmap` trained on the AG News dataset, which is also used in the app. Similar procedures are echoed in the `notebooks/Wmap_Experiments` notebook. 
+* `scripts/few-shot_text_classification.py` performs **few-shot text classification**; that is, text classification with *only a few labeled training examples.* This script generates a model known as a `Wmap`. `Wmaps` rely on training data and are thus specific to a given dataset. In the `data/maps` directory we include a `Wmap` trained on the AG News dataset, which is also used in the app. A similar workflow is explored in the `notebooks/Wmap_Experiments` notebook. 
 
-To run scripts, follow this procedure in the terminal or a Session:
+To run scripts, follow this procedure in the terminal or a Session with at least 2vCPUs and 8GiBs of memory (and preferably a GPU):
 
 ```python
 !python3 scripts/on-the-fly_text_classification.py
