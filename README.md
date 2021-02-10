@@ -131,7 +131,9 @@ To run scripts, follow this procedure in the terminal or a Session with at least
 (Remove the `!` for non-CML/CDSW environments.)
 
 ---
-NOTE: The scripts are intended to be run on a GPU-enabled machine in order to complete in a timely fashion. On a CPU-only machine, these scripts can take from 3-6 hours to complete. With GPUs enabled, this reduces to a few minutes.
+NOTE: The scripts and notebooks were originally intended to be run on a GPU-enabled machine in order to complete in a timely fashion. On a CPU-only machine, they can take from 3-6 hours to complete. With GPUs enabled, this reduces to a few minutes.
+
+However, we provide pre-computed data sources for the scripts so that they can be executed with only a CPU. The notebooks, however, require additional data sources that we do not currently include. These instead rely explicitly on GPU-compute to process data. 
 
 ---
 
